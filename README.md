@@ -142,3 +142,11 @@ Tests cover permissions, persistence, adversarial ranking, original starter-kit 
 | `public/` | Responsive web UI |
 | `test/` | Regression tests |
 | `.env.example` | Server configuration template, no credentials |
+
+## Backups and navigation
+
+In the HR data workspace, **Download current dataset** exports the data collections for merging; it does not include personal plans. **Download full backup** includes all saved skill levels, manual enrollments and withdrawals. To restore it, choose that JSON file, validate it, review the replacement notice, then select **Restore full backup**. Restoration replaces the entire state without replaying history; sessions and API credentials are not included.
+
+Repeated completion rows remain in the audit history, but only the earliest completion per employee/event grants skill credit. Recurring events grant credit once per session (`session_date`, falling back to the historical `date`). Import preview reports duplicate completions. Existing saved states are not automatically rewritten.
+
+Screens use links such as `#/activities` and `#/path`; HR previews use `#/preview?employee=E0028`. Refresh and browser Back/Forward retain the screen, and navigation focuses the main content. Shared markup is in `public/components.js`, routing in `public/routes.js`, and navigation translations use stable keys.

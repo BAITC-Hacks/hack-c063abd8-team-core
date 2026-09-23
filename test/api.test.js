@@ -76,6 +76,36 @@ test('API enforces permissions, validates imports and persists completion', asyn
     assert.equal(csvPreview.status, 200);
     assert.equal((await request('/api/hr/import', hr, { files, revision: csvPreview.data.revision })).status, 200);
     assert.equal((await request('/api/profile?employee_id=JURY_NEW', hr)).data.history.length, 1);
+    async function importDataset(dataset) {
+      const preview = await request('/api/hr/import', hr, { dataset, preview: true });
+      assert.equal(preview.status, 200);
+      const applied = await request('/api/hr/import', hr, { dataset, revision: preview.data.revision });
+      assert.equal(applied.status, 200);
+      return preview.data;
+    }
+    // A changed audience must not trap an existing enrollment or hide it from My plan.
+    assert.equal((await request('/api/enroll', employee, { event_id: 'EV004' })).status, 200);
+    await importDataset({ events: [{ ...disk.events.find(e => e.event_id === 'EV004'), audience: ['Not this role'] }] });
+    const changed = (await request('/api/events', employee)).data.find(e => e.event_id === 'EV004');
+    assert.equal(changed.joined, true); assert.equal(changed.available, false);
+    assert.equal((await request('/api/withdraw', employee, { event_id: 'EV004' })).status, 200);
+    assert.equal((await request('/api/withdraw', employee, { event_id: 'EV004' })).status, 404);
+    const recurring = { ...disk.events[0], event_id: 'EV_SESS', recurring: true, format: 'online', upcoming_sessions: ['2099-01-01', '2099-01-02'] };
+    await importDataset({ events: [recurring] });
+    for (const date of recurring.upcoming_sessions) {
+      assert.equal((await request('/api/enroll', employee, { event_id: recurring.event_id })).status, 200);
+      assert.equal((await request('/api/profile', employee)).data.enrollments.find(e => e.event_id === recurring.event_id).session_date, date);
+      assert.equal((await request('/api/complete', employee, { event_id: recurring.event_id })).status, 200);
+    }
+    assert.ok(!(await request('/api/events', employee)).data.some(e => e.event_id === recurring.event_id));
+    assert.ok(!(await request('/api/recommendations', employee)).data.recommendations.some(e => e.event_id === recurring.event_id));
+    assert.equal((await request('/api/enroll', employee, { event_id: recurring.event_id })).status, 400);
+    assert.equal((await request('/api/hr/backup', employee)).status, 403);
+    const backup = (await request('/api/hr/backup', hr)).data;
+    assert.ok(backup.state.withdrawn_enrollments.includes('E0028:EV004'));
+    assert.equal((await importDataset(backup)).restoring, true);
+    assert.deepEqual((await request('/api/hr/backup', hr)).data, backup);
+    for (const path of ['/routes.js', '/components.js']) assert.equal((await fetch(base + path)).status, 200);
     await request('/api/logout', employee, {});
     assert.equal((await request('/api/profile', employee)).status, 401);
   } finally {

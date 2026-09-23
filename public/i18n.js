@@ -4,8 +4,25 @@ export const languages = ['en', 'ru', 'kk'];
 export const normalizeLanguage = value => value === 'kz' ? 'kk' : languages.includes(value) ? value : 'en';
 export const locales = { en: 'en-GB', ru: 'ru-RU', kk: 'kk-KZ' };
 export const messages = {};
+// Stable keys for shared navigation; legacy content remains compatible.
+const uiLabels = { 'nav.overview': 'Overview', 'nav.path': 'My growth path', 'nav.activities': 'Explore activities', 'nav.journal': 'My journey', 'nav.hr': 'Team overview', 'nav.import': 'Data workspace' };
+export const translateKey = (key, language) => Object.hasOwn(uiLabels, key) ? translateText(uiLabels[key], language) : undefined;
 function add(en, ru, kk) { messages[en] = { ru, kk }; }
 const rows = [
+['Download full backup','Скачать полную резервную копию','Толық сақтық көшірмені жүктеп алу'],
+['Restore full backup','Восстановить полную резервную копию','Толық сақтық көшірмені қалпына келтіру'],
+['Dataset export excludes personal plans. Use a full backup to restore all data.','Экспорт датасета не включает личные планы. Для восстановления всех данных используйте полную резервную копию.','Деректер экспорты жеке жоспарларды қамтымайды. Барлық деректі қалпына келтіру үшін толық сақтық көшірмені қолданыңыз.'],
+['Duplicate completions do not grant extra skill gains.','Повторные завершения не увеличивают навыки повторно.','Қайталанған аяқтау жазбалары дағдыларды қайта арттырмайды.'],
+['Restoring this backup replaces all current data and personal plans.','Восстановление этой копии заменит все текущие данные и личные планы.','Бұл көшірмені қалпына келтіру барлық ағымдағы деректер мен жеке жоспарларды ауыстырады.'],
+['Enrollment not found.','Запись на активность не найдена.','Іс-шараға тіркелу жазбасы табылмады.'],
+['CSV has empty column names.','В CSV есть пустые названия столбцов.','CSV файлында бос баған атаулары бар.'],
+['Unsupported backup version.','Неподдерживаемая версия резервной копии.','Сақтық көшірменің бұл нұсқасына қолдау көрсетілмейді.'],
+['Backup must include the complete personal plan.','Резервная копия должна содержать полный личный план.','Сақтық көшірме толық жеке жоспарды қамтуы керек.'],
+['Invalid enrollments.','Некорректный список записей на активности.','Іс-шараларға тіркелу тізімі қате.'],
+['Invalid enrollment reference.','В записи неизвестный сотрудник или активность.','Тіркелу жазбасындағы қызметкер немесе іс-шара белгісіз.'],
+['Duplicate enrollment.','Повторная запись на активность.','Іс-шараға тіркелу жазбасы қайталанады.'],
+['Invalid enrollment date.','Некорректная дата записи.','Тіркелу күні қате.'],
+['Invalid withdrawn enrollments.','Некорректный список отменённых записей.','Бас тартылған тіркелулер тізімі қате.'],
 ['HR workspace','Кабинет HR','HR кабинеті'],
 ['your current grade','вашего текущего грейда','қазіргі грейдіңіз'],
 ['live','текущие данные','ағымдағы деректер'],
@@ -233,6 +250,12 @@ const choose = (lang, ru, kk) => lang === 'ru' ? ru : kk;
 function dynamic(text, lang) {
   const tr = value => translateText(value, lang);
   let m;
+  if (text.startsWith('Validation passed.')) {
+    for (const suffix of [' Restoring this backup replaces all current data and personal plans.', ' Duplicate completions do not grant extra skill gains.']) {
+      if (text.endsWith(suffix)) return tr(text.slice(0, -suffix.length)) + ' ' + tr(suffix.trim());
+    }
+  }
+  if ((m = text.match(/^([A-Za-z0-9_-]+): (mandatory|recurring) must be boolean\.$/))) return choose(lang, `${m[1]}: ${m[2]} должно быть логическим значением.`, `${m[1]}: ${m[2]} логикалық мән болуы керек.`);
   if ((m = text.match(/^([A-Za-z0-9_-]+): (.+)$/)) && messages[m[2]]) return `${m[1]}: ${tr(m[2])}`;
   if ((m = text.match(/^([A-Za-z0-9_-]+): invalid or missing (.+)\.$/))) return choose(lang, `${m[1]}: отсутствует или некорректно ${m[2]}.`, `${m[1]}: ${m[2]} мәні жоқ немесе қате.`);
   if ((m = text.match(/^([A-Za-z0-9_-]+): unknown skill or level outside 0–5: (.+)\.$/))) return choose(lang, `${m[1]}: неизвестный навык или уровень вне 0–5: ${m[2]}.`, `${m[1]}: белгісіз дағды немесе 0–5 аралығынан тыс деңгей: ${m[2]}.`);

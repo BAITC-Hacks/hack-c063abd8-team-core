@@ -4,10 +4,10 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { createSeed } from './lib/seed.js';
-import { trajectory, recommend, eligible, skillChanges, completeActivity, hrSummary, mergeImport, parseCsv, validateState } from './lib/domain.js';
+import { trajectory, recommend, eligible, remainingSessions, skillChanges, completeActivity, hrSummary, mergeImport, parseCsv, validateState, exportBackup, restoreBackup } from './lib/domain.js';
 import { aiRecommendations } from './lib/ai.js';
 import { aiConfig } from './lib/ai.js';
-import { asOf, datasetFromFiles } from './lib/dataset.js';
+import { asOf, datasetFromFiles, uniqueCompletions } from './lib/dataset.js';
 import { loadDatasetDirectory } from './lib/dataset-loader.js';
 import { normalizeLanguage } from './public/i18n.js';
 import { redactSecrets } from './lib/secrets.js';
@@ -56,7 +56,7 @@ function profile(session, query) {
   if (!employee) fail(404, 'Employee profile not found.');
   return employee;
 }
-const assets = { '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/i18n.js': ['i18n.js', 'text/javascript'], '/language.js': ['language.js', 'text/javascript'], '/catalog.js': ['catalog.js', 'text/javascript'], '/styles.css': ['styles.css', 'text/css'], '/favicon.svg': ['favicon.svg', 'image/svg+xml'] };
+const assets = { '/components.js': ['components.js', 'text/javascript'], '/routes.js': ['routes.js', 'text/javascript'], '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/i18n.js': ['i18n.js', 'text/javascript'], '/language.js': ['language.js', 'text/javascript'], '/catalog.js': ['catalog.js', 'text/javascript'], '/styles.css': ['styles.css', 'text/css'], '/favicon.svg': ['favicon.svg', 'image/svg+xml'] };
 export const server = http.createServer(async (req, res) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'no-referrer');
@@ -121,23 +121,24 @@ export const server = http.createServer(async (req, res) => {
     }
     if (route === '/api/events' && req.method === 'GET') {
       const employee = profile(session, url.searchParams);
-      return json(res, 200, state.events.filter(e => eligible(e, employee, state)).map(e => ({ ...e, changes: skillChanges(e, employee).map(c => ({ ...c, name: state.skills.find(s => s.skill_id === c.skill_id).name })), completed: !e.recurring && state.history.some(h => h.employee_id === employee.employee_id && h.event_id === e.event_id && h.status === 'completed'), joined: state.enrollments.some(h => h.employee_id === employee.employee_id && h.event_id === e.event_id) })));
+      return json(res, 200, state.events.filter(e => eligible(e, employee, state) || state.enrollments.some(h => h.employee_id === employee.employee_id && h.event_id === e.event_id)).map(e => ({ ...e, available: eligible(e, employee, state), changes: skillChanges(e, employee).map(c => ({ ...c, name: state.skills.find(s => s.skill_id === c.skill_id).name })), completed: !e.recurring && state.history.some(h => h.employee_id === employee.employee_id && h.event_id === e.event_id && h.status === 'completed'), joined: state.enrollments.some(h => h.employee_id === employee.employee_id && h.event_id === e.event_id) })));
     }
     if (['/api/enroll', '/api/complete', '/api/withdraw'].includes(route) && req.method === 'POST') {
       if (session.role !== 'employee') fail(403, 'Activity actions are available only in your own employee account.');
       const b = await body(req); const next = structuredClone(state); const employee = next.employees.find(e => e.employee_id === session.employee_id);
       const event = next.events.find(e => e.event_id === b.event_id);
-      if (!event || !eligible(event, employee, next)) fail(400, 'Activity unavailable: check role, grade, prerequisites and session availability.');
+      if (route !== '/api/withdraw' && (!event || !eligible(event, employee, next))) fail(400, 'Activity unavailable: check role, grade, prerequisites and session availability.');
       let changes;
       if (route === '/api/complete') changes = completeActivity(next, employee, b.event_id);
       else if (route === '/api/withdraw') {
+        if (!next.enrollments.some(e => e.employee_id === employee.employee_id && e.event_id === b.event_id)) fail(404, 'Enrollment not found.');
         next.enrollments = next.enrollments.filter(e => !(e.employee_id === employee.employee_id && e.event_id === b.event_id));
         next.withdrawn_enrollments = [...new Set([...(next.withdrawn_enrollments || []), `${employee.employee_id}:${b.event_id}`])];
       }
       else {
         if (!event.recurring && next.history.some(h => h.employee_id === employee.employee_id && h.event_id === b.event_id && h.status === 'completed')) fail(409, 'Activity already completed.');
-        const sessionDate = event.upcoming_sessions?.find(d => d >= asOf(next).slice(0, 10) && !next.history.some(h => h.employee_id === employee.employee_id && h.event_id === event.event_id && h.status === 'completed' && h.session_date === d));
-        if (event.recurring && event.format !== 'self_paced' && !sessionDate) fail(409, 'No remaining sessions available.');
+        const sessionDate = remainingSessions(event, employee, next)[0];
+        if (event.recurring && !sessionDate) fail(409, 'No remaining sessions available.');
         next.withdrawn_enrollments = (next.withdrawn_enrollments || []).filter(key => key !== `${employee.employee_id}:${b.event_id}`);
         if (!next.enrollments.some(e => e.employee_id === employee.employee_id && e.event_id === b.event_id)) next.enrollments.push({ employee_id: employee.employee_id, event_id: b.event_id, date: asOf(next), session_date: sessionDate });
       }
@@ -146,6 +147,7 @@ export const server = http.createServer(async (req, res) => {
     if (route.startsWith('/api/hr/')) {
       if (session.role !== 'hr') fail(403, 'HR access is required.');
       if (route === '/api/hr/summary' && req.method === 'GET') return json(res, 200, hrSummary(state));
+      if (route === '/api/hr/backup' && req.method === 'GET') return json(res, 200, exportBackup(state));
       if (route === '/api/hr/export' && req.method === 'GET') return json(res, 200, { meta: state.meta, role_profiles: state.role_profiles, proficiency_scale: state.proficiency_scale, employees: state.employees, events: state.events, skills: state.skills, history: state.history });
       if (route === '/api/hr/import' && req.method === 'POST') {
         const b = await body(req);
@@ -154,9 +156,10 @@ export const server = http.createServer(async (req, res) => {
           if (!Array.isArray(b.files)) fail(400, 'Files must be an array.');
           payload = datasetFromFiles(b.files.map(f => ({ name: f.name, parsed: String(f.name).toLowerCase().endsWith('.csv') ? parseCsv(f.text) : JSON.parse(f.text.replace(/^\uFEFF/, '')) })));
         }
-        const candidate = mergeImport(state, payload);
+        const restoring = payload?.kind === 'career-quest-backup';
+        const candidate = restoring ? restoreBackup(payload) : mergeImport(state, payload);
         const counts = Object.fromEntries(['employees', 'events', 'skills', 'history'].map(k => [k, candidate[k].length]));
-        if (b.preview) return json(res, 200, { counts, message: 'Validated. Ready to import.', revision });
+        if (b.preview) return json(res, 200, { counts, restoring, duplicate_completions: candidate.history.filter(h => h.status === 'completed').length - uniqueCompletions(candidate).length, message: 'Validated. Ready to import.', revision });
         if (b.revision !== revision) fail(409, 'Data changed since validation. Validate your files again.');
         save(candidate); return json(res, 200, { counts, message: 'Dataset imported successfully.' });
       }

@@ -1,5 +1,7 @@
+import { icon, esc, brand, heading } from './components.js';
 import { translateText } from './i18n.js';
 import { readLanguage, writeLanguage, createTranslator, languagePicker } from './language.js';
+import { readRoute, routeHash } from './routes.js';
 let language = readLanguage({ getItem: key => localStorage.getItem(key) });
 const translator = createTranslator(document, () => language);
 let translationQueued = false;
@@ -22,29 +24,29 @@ document.addEventListener('click', event => {
 });
 translator.apply();
 const app = document.querySelector('#app');
-const icons = {
-  home: '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',
-  path: '<circle cx="6" cy="5" r="2"/><circle cx="18" cy="19" r="2"/><path d="M6 7v7a4 4 0 0 0 4 4h6M9 5h5a4 4 0 0 1 0 8h-2"/>',
-  book: '<path d="M12 5c-4-3-8-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-1-1-5-2-9 1zM12 5v15"/>',
-  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
-  arrow: '<path d="M5 12h14m-5-5 5 5-5 5"/>',
-  star: '<path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5z"/>',
-  people: '<circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6m2 4a5 5 0 0 1 3 5"/>',
-  shield: '<path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6zM8 12l3 3 5-6"/>',
-  check: '<path d="m5 12 4 4L19 6"/>',
-  upload: '<path d="M12 16V3m-5 5 5-5 5 5M4 15v5h16v-5"/>',
-  search: '<circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/>',
-  out: '<path d="M9 4H4v16h5m6-13 5 5-5 5M8 12h12"/>',
-  chevron: '<path d="m9 5 7 7-7 7"/>',
-  leaf: '<path d="M20 3C6 2 1 12 8 17c7 5 14-3 12-14zM5 21 16 9"/>',
-};
-const icon = (name, cls = '') => `<svg class="icon ${cls}" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[name] || icons.star}</svg>`;
-const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const date = value => new Date(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 let config = {};
 const initials = name => String(name || 'Employee').split(/\s+/).map(x => x[0]).slice(0, 2).join('').toUpperCase();
 let user, view = 'overview', data, recommendations, events = [], hr, selectedEmployee, activityFilter = 'all', search = '', hrFilter = 'all', requestId = 0;
 let recommendationRequest = 0;
+function restoreRoute() {
+  const route = readRoute(location.hash, user.role);
+  view = route.view; selectedEmployee = route.employee;
+  history.replaceState(null, '', routeHash(view, selectedEmployee));
+}
+function navigate(nextView, employee = selectedEmployee) {
+  const route = readRoute(routeHash(nextView, employee), user.role);
+  view = route.view; selectedEmployee = route.employee; search = '';
+  history.pushState(null, '', routeHash(view, selectedEmployee));
+  document.querySelector('dialog')?.close(); document.querySelector('dialog')?.remove();
+  load();
+}
+window.addEventListener('hashchange', () => {
+  if (!user) return;
+  restoreRoute(); search = '';
+  document.querySelector('dialog')?.close(); document.querySelector('dialog')?.remove();
+  load();
+});
 async function refreshRecommendations() {
   const section = document.querySelector('#recommendations');
   if (!section) return;
@@ -79,17 +81,16 @@ function login() {
   document.querySelector('#username').onchange = e => { document.querySelector('#password').value = e.target.value === 'hr' ? 'support-growth' : 'grow-together'; };
   document.querySelector('#login-form').onsubmit = async e => {
     e.preventDefault(); const button = e.target.querySelector('button'); button.disabled = true;
-    try { user = await api('/api/login', Object.fromEntries(new FormData(e.target))); view = user.role === 'hr' ? 'hr' : 'overview'; selectedEmployee = null; await load(); }
+    try { user = await api('/api/login', Object.fromEntries(new FormData(e.target))); restoreRoute(); await load(); }
     catch (error) { document.querySelector('#login-error').textContent = error.message; button.disabled = false; }
   };
 }
-function brand() { return '<span class="brand-mark"><svg viewBox="0 0 32 32" width="27" height="27" aria-hidden="true"><path d="M5 25V12l11-7 11 7v13l-11-7z" fill="currentColor"/></svg></span>'; }
-function navItem(id, name, symbol, extra = '') { return `<button class="nav-item ${view === id ? 'active' : ''}" data-view="${id}" ${view === id ? 'aria-current="page"' : ''}>${icon(symbol)}<span>${name}</span>${extra}</button>`; }
+function navItem(id, name, symbol, extra = '') { return `<button class="nav-item ${view === id ? 'active' : ''}" data-view="${id}" ${view === id ? 'aria-current="page"' : ''}>${icon(symbol)}<span data-i18n-key="nav.${id}">${name}</span>${extra}</button>`; }
 function shell() {
   const isHR = user.role === 'hr';
-  app.innerHTML = `<div class="layout"><aside class="sidebar"><a class="brand" href="/">${brand()}<span>career<span class="brand-light">quest</span><small>GROW WITH HALYK</small></span></a><div class="workspace-label">${isHR ? 'PEOPLE & DEVELOPMENT' : 'YOUR WORKSPACE'}</div><nav aria-label="Main navigation">${isHR ? navItem('hr', 'Team overview', 'home') + navItem('import', 'Data workspace', 'upload') : navItem('overview', 'Overview', 'home') + navItem('path', 'My growth path', 'path') + navItem('activities', 'Explore activities', 'book') + navItem('journal', 'My journey', 'clock')}</nav><div class="sidebar-bottom"><div class="gentle-note">${icon('leaf')}<strong>Small steps.<br>Meaningful growth.</strong><p>Your journey is your own.<br>Let’s make it a good one.</p></div><div class="sidebar-user"><span class="avatar small">${isHR ? 'HR' : esc(initials(user.name))}</span><span><strong ${isHR ? '' : 'data-no-i18n'}>${isHR ? 'HR workspace' : esc(user.name)}</strong><small>${isHR ? 'HR specialist' : 'Employee workspace'}</small></span><button class="icon-button" id="logout" aria-label="Sign out">${icon('out')}</button></div></div></aside><div class="main-wrap"><header class="topbar"><div class="breadcrumb">Workspace <span>/</span> <strong>${({ overview: 'Overview', path: 'My growth path', activities: 'Explore activities', journal: 'My journey', hr: 'Team overview', import: 'Data workspace', preview: 'Profile preview' })[view]}</strong></div><div class="topbar-right">${languagePicker()}<span class="private-label">${icon('shield')} ${isHR ? 'HR access' : 'Only visible to you & HR'}</span><span class="avatar">${isHR ? 'HR' : esc(initials(user.name))}</span></div></header><main id="content" tabindex="-1"></main><footer class="main-footer"><span>Career Quest <span class="footer-dot">·</span> A little progress, every day.</span><span>Synthetic dataset${config.snapshot_date ? ' \u00b7 ' + esc(config.snapshot_date) : ''}</span></footer></div></div>`;
-  document.querySelectorAll('[data-view]').forEach(el => el.onclick = () => { view = el.dataset.view; search = ''; load(); });
-  document.querySelector('#logout').onclick = async () => { try { await api('/api/logout', {}); ++requestId; login(); } catch (e) { toast(e.message); } };
+  app.innerHTML = `<div class="layout"><aside class="sidebar"><a class="brand" href="/">${brand()}<span>career<span class="brand-light">quest</span><small>GROW WITH HALYK</small></span></a><div class="workspace-label">${isHR ? 'PEOPLE & DEVELOPMENT' : 'YOUR WORKSPACE'}</div><nav aria-label="Main navigation">${isHR ? navItem('hr', 'Team overview', 'home') + navItem('import', 'Data workspace', 'upload') : navItem('overview', 'Overview', 'home') + navItem('path', 'My growth path', 'path') + navItem('activities', 'Explore activities', 'book') + navItem('journal', 'My journey', 'clock')}</nav><div class="sidebar-bottom"><div class="gentle-note">${icon('leaf')}<strong>Small steps.<br>Meaningful growth.</strong><p>Your journey is your own.<br>Let’s make it a good one.</p></div><div class="sidebar-user"><span class="avatar small">${isHR ? 'HR' : esc(initials(user.name))}</span><span><strong ${isHR ? '' : 'data-no-i18n'}>${isHR ? 'HR workspace' : esc(user.name)}</strong><small>${isHR ? 'HR specialist' : 'Employee workspace'}</small></span><button class="icon-button" id="logout" aria-label="Sign out">${icon('out')}</button></div></div></aside><div class="main-wrap"><header class="topbar"><div class="breadcrumb">Workspace <span>/</span> <strong>${({ overview: 'Overview', path: 'My growth path', activities: 'Explore activities', journal: 'My journey', hr: 'Team overview', import: 'Data workspace', preview: 'Profile preview' })[view]}</strong></div><div class="topbar-right">${languagePicker()}<button class="icon-button" id="mobile-logout" aria-label="Sign out">${icon('out')}</button><span class="private-label">${icon('shield')} ${isHR ? 'HR access' : 'Only visible to you & HR'}</span><span class="avatar">${isHR ? 'HR' : esc(initials(user.name))}</span></div></header><main id="content" tabindex="-1"></main><footer class="main-footer"><span>Career Quest <span class="footer-dot">·</span> A little progress, every day.</span><span>Synthetic dataset${config.snapshot_date ? ' \u00b7 ' + esc(config.snapshot_date) : ''}</span></footer></div></div>`;
+  document.querySelectorAll('[data-view]').forEach(el => el.onclick = () => { navigate(el.dataset.view); });
+  document.querySelectorAll('#logout, #mobile-logout').forEach(button => { button.onclick = async () => { try { await api('/api/logout', {}); ++requestId; login(); } catch (e) { toast(e.message); } }; });
 }
 async function load() {
   const id = ++requestId; shell();
@@ -113,9 +114,10 @@ async function load() {
     if (id !== requestId) return;
     content.innerHTML = `<div class="empty"><h2>We couldn’t load this workspace.</h2><p>${esc(error.message)}</p><button class="button primary" id="retry">Try again</button></div>`;
     document.querySelector('#retry').onclick = load;
+  } finally {
+    if (id === requestId) document.querySelector('#content')?.focus({ preventScroll: true });
   }
 }
-function heading(eyebrow, title, subtitle, aside = '') { return `<div class="page-heading"><div><div class="eyebrow">${eyebrow}</div><h1>${title}</h1><p>${subtitle}</p></div>${aside}</div>`; }
 function renderEmployee() {
   const employee = data.employee, path = data.trajectory;
   const content = document.querySelector('#content');
@@ -129,7 +131,7 @@ function renderEmployee() {
 }
 function skillBars(skills) {
   if (!skills.length) return '<p class="muted">You’ve met the defined skill targets. Take a moment to enjoy your progress.</p>';
-  return skills.map(s => `<div class="skill-row"><div class="skill-label"><strong>${esc(s.name)}${s.critical ? ' · Critical' : ''}</strong><span><b>${s.current}</b> / ${s.target} target</span></div><div class="skill-track"><span style="width:${s.current * 20}%"></span><i style="left:${Math.min(s.target * 20, 99)}%" title="Target level ${s.target}"></i></div></div>`).join('');
+  return skills.map(s => `<div class="skill-row"><div class="skill-label"><strong><span>${esc(s.name)}</span>${s.critical ? '<span> · Critical</span>' : ''}</strong><span><b>${s.current}</b> / ${s.target} target</span></div><div class="skill-track"><span style="width:${s.current * 20}%"></span><i style="left:${Math.min(s.target * 20, 99)}%" title="Target level ${s.target}"></i></div></div>`).join('');
 }
 function renderRecommendations() {
   const el = document.querySelector('#recommendations'); if (!el) return;
@@ -143,7 +145,7 @@ function activityCard(event, index, recommended = false) {
   const actual = event.changes?.filter(c => c.after > c.before) || [];
   return `<article class="activity-card"><div class="activity-top"><span class="activity-icon ${colors[index % 3]}">${icon(({ workshop: 'people', course: 'book', mentoring: 'people', lab: 'shield', challenge: 'path' })[event.type] || 'book')}</span><span class="activity-type">${esc(event.type)} <span>·</span> ${event.duration_hours}h</span>${recommended && index === 0 ? '<span class="best-fit">TOP PICK</span>' : ''}</div><h3>${esc(event.title)}</h3><p class="activity-description">${esc(event.description || 'A practical opportunity to develop your skills.')}</p><div class="gain-tags">${actual.map(c => `<span>${esc(c.name || c.skill_id)} <b>+${c.after - c.before}</b></span>`).join('') || '<span>Practice & reinforce</span>'}</div>${recommended ? `<div class="why-preview">${icon('star')}<p>${esc(event.evidence[0])}</p></div>` : ''}<div class="activity-bottom"><button class="text-button" data-detail="${esc(event.event_id)}">${recommended ? 'Why this step?' : 'View details'} ${icon('chevron')}</button>${user.role === 'hr' ? '<span class="muted">Preview only</span>' : completed ? `<span class="completed-label">${icon('check')} Completed</span>` : `<button class="button ${enrolled ? 'secondary' : 'primary'} compact" data-${enrolled ? 'detail' : 'join'}="${esc(event.event_id)}">${enrolled ? 'In progress' : 'Join activity'} ${icon(enrolled ? 'clock' : 'arrow')}</button>`}</div></article>`;
 }
-function bindNavigation() { document.querySelectorAll('#content [data-view]').forEach(el => el.onclick = () => { view = el.dataset.view; load(); }); }
+function bindNavigation() { document.querySelectorAll('#content [data-view]').forEach(el => el.onclick = () => { navigate(el.dataset.view); }); }
 function bindActivities(root = document) {
   root.querySelectorAll('[data-detail]').forEach(el => el.onclick = () => openActivity(el.dataset.detail));
   root.querySelectorAll('[data-join]').forEach(el => el.onclick = () => activityAction('enroll', el.dataset.join, el));
@@ -169,7 +171,7 @@ function openActivity(id) {
   const event = recommendations?.recommendations.find(e => e.event_id === id) || events.find(e => e.event_id === id);
   if (!event) return;
   const enrolled = data.enrollments.some(e => e.event_id === id), completed = !event.recurring && data.history.some(h => h.event_id === id && h.status === 'completed');
-  const dialog = showDialog(`<span class="eyebrow">${esc(event.type)} · ${event.duration_hours} HOURS · VOLUNTARY</span><h2>${esc(event.title)}</h2><p class="muted">${esc(event.description || '')}</p>${event.ai_rationale ? `<div class="ai-rationale"><h3>${icon('star')} ${recommendations?.mode === 'openai' ? 'OpenAI' : 'Local AI'} reasoning</h3><p data-no-i18n>${esc(event.ai_rationale)}</p><small>Model-generated explanation; check the verified evidence below.</small></div>` : ''}${event.evidence ? `<h3>Why this step fits</h3><ul class="evidence-list">${event.evidence.map(e => `<li>${esc(e)}</li>`).join('')}</ul><p class="score-note">Multi-factor score: ${event.score}. Considers gap closure, gap size, participation history, format and effort.</p>` : ''}${event.caution ? `<div class="caution">${esc(event.caution)}</div>` : ''}${event.format ? `<p class="muted">Format: ${esc(event.format.replace('_', ' '))}${event.recurring ? ' · Recurring activity' : ''}${event.upcoming_sessions?.length ? ' · Next sessions: ' + event.upcoming_sessions.slice(0, 3).map(date).join(', ') : ''}</p>` : ''}<h3>What changes when you complete it</h3><div class="change-list">${event.changes.map(c => `<div><span>${esc(c.name || c.skill_id)}</span><strong>${c.before} ${icon('arrow')} ${c.after}</strong><small>Gain ${c.gain}, activity cap ${c.max_level}, scale 0–5</small></div>`).join('')}</div><p class="formula">New level = max(current, min(5, activity cap, current + gain)). Your level never decreases.</p><div class="dialog-actions">${user.role === 'hr' ? '<p class="muted">HR preview is read-only.</p>' : completed ? `<span class="completed-label">${icon('check')} Already completed</span>` : enrolled ? `<p class="muted">Demo: completion is self-reported and immediately updates your skills.</p><button class="button primary" id="complete">${icon('check')} Mark as completed</button><button class="text-button" id="withdraw">Leave activity</button>` : `<button class="button primary" data-join="${esc(id)}">Add to my plan ${icon('arrow')}</button>`}</div>`);
+  const dialog = showDialog(`<span class="eyebrow">${esc(event.type)} · ${event.duration_hours} HOURS · VOLUNTARY</span><h2>${esc(event.title)}</h2><p class="muted">${esc(event.description || '')}</p>${event.ai_rationale ? `<div class="ai-rationale"><h3>${icon('star')} ${recommendations?.mode === 'openai' ? 'OpenAI' : 'Local AI'} reasoning</h3><p data-no-i18n>${esc(event.ai_rationale)}</p><small>Model-generated explanation; check the verified evidence below.</small></div>` : ''}${event.evidence ? `<h3>Why this step fits</h3><ul class="evidence-list">${event.evidence.map(e => `<li>${esc(e)}</li>`).join('')}</ul><p class="score-note">Multi-factor score: ${event.score}. Considers gap closure, gap size, participation history, format and effort.</p>` : ''}${event.caution ? `<div class="caution">${esc(event.caution)}</div>` : ''}${event.format ? `<p class="muted">Format: ${esc(event.format.replace('_', ' '))}${event.recurring ? ' · Recurring activity' : ''}${event.upcoming_sessions?.length ? ' · Next sessions: ' + event.upcoming_sessions.slice(0, 3).map(date).join(', ') : ''}</p>` : ''}<h3>What changes when you complete it</h3><div class="change-list">${event.changes.map(c => `<div><span>${esc(c.name || c.skill_id)}</span><strong>${c.before} ${icon('arrow')} ${c.after}</strong><small>Gain ${c.gain}, activity cap ${c.max_level}, scale 0–5</small></div>`).join('')}</div><p class="formula">New level = max(current, min(5, activity cap, current + gain)). Your level never decreases.</p><div class="dialog-actions">${user.role === 'hr' ? '<p class="muted">HR preview is read-only.</p>' : completed ? `<span class="completed-label">${icon('check')} Already completed</span>` : enrolled ? `<p class="muted">Demo: completion is self-reported and immediately updates your skills.</p><button class="button primary" id="complete" ${event.available === false ? 'disabled' : ''}>${icon('check')} Mark as completed</button><button class="text-button" id="withdraw">Leave activity</button>` : `<button class="button primary" data-join="${esc(id)}">Add to my plan ${icon('arrow')}</button>`}</div>`);
   bindActivities(dialog);
   dialog.querySelector('#complete')?.addEventListener('click', e => activityAction('complete', id, e.currentTarget));
   dialog.querySelector('#withdraw')?.addEventListener('click', e => activityAction('withdraw', id, e.currentTarget));
@@ -206,10 +208,10 @@ function renderPeople() {
   const people = hr.people.filter(p => (hrFilter === 'all' || p.needs_support) && [p.name, p.employee_id, p.department, p.role].flatMap(value => [value || '', translateText(value || '', language)]).join(' ').toLocaleLowerCase().includes(search.toLocaleLowerCase())).sort((a, b) => (a.name || a.employee_id).localeCompare(b.name || b.employee_id));
   document.querySelector('#people-rows').innerHTML = people.map(p => `<tr><td><strong data-no-i18n>${esc(p.name || p.employee_id)}</strong><small>${esc(p.employee_id)} · ${esc(p.role)}</small></td><td>${esc(p.department || 'Unassigned')}</td><td><span class="grade-tag">${esc(p.grade)}</span></td><td><div class="table-progress"><span style="width:${p.readiness || 0}%"></span></div>${p.readiness === null ? '—' : p.readiness + '%'}</td><td><span class="status ${p.needs_support ? 'support' : 'active-status'}" title="${esc(p.needs_support ? p.support_reason : 'Recent completed activity')}">${p.needs_support ? 'Offer support' : 'Active'}</span></td><td><button class="icon-button" data-preview="${esc(p.employee_id)}" aria-label="View ${esc(p.name || p.employee_id)} profile">${icon('arrow')}</button></td></tr>`).join('') || '<tr><td colspan="6">No matching colleagues.</td></tr>';
   document.querySelector('#people-count').textContent = `${people.length} colleagues`;
-  document.querySelectorAll('[data-preview]').forEach(el => el.onclick = () => { selectedEmployee = el.dataset.preview; view = 'preview'; load(); });
+  document.querySelectorAll('[data-preview]').forEach(el => el.onclick = () => { navigate('preview', el.dataset.preview); });
 }
 function renderImport() {
-  document.querySelector('#content').innerHTML = heading('BRING THE BIGGER PICTURE', 'A home for your development data.', 'Import starter-kit or jury profiles and history. Validate everything before applying it.') + `<div class="import-grid"><section class="panel"><h2>Upload a dataset</h2><p class="muted">Select a combined JSON dataset, or select the starter-kit files together. Maximum request size: 8 MB.</p><label class="upload-zone" for="dataset-files">${icon('upload')}<strong>Choose your dataset files</strong><span>JSON or CSV · you can select multiple files</span><input id="dataset-files" type="file" accept=".json,.csv" multiple></label><div id="import-files" class="muted"></div><div id="import-feedback" role="status"></div><div class="import-actions"><button class="button primary" id="validate-import" disabled>Validate files ${icon('check')}</button><button class="button secondary" id="apply-import" disabled>Import validated data ${icon('arrow')}</button></div></section><aside class="panel import-help"><span class="pill pale">Jury-ready workflow</span><h2>Connect the context.</h2><ul><li><strong>employees.json</strong><span>Role, grade, tenure and current skill levels.</span></li><li><strong>events.json</strong><span>Audience, activity type, skill gains and caps.</span></li><li><strong>skills.json</strong><span>Skill definitions and grade requirements.</span></li><li><strong>activity_history.csv</strong><span>Participation, no-shows and declined activities.</span></li></ul><p class="muted">Profiles, skills and events merge by ID. Uploaded history replaces the history of employees represented in that file. For starter-kit profiles, completed activities dated after the last review are applied once to the assessment baseline, respecting skill caps.</p><button id="export-data" class="text-button">Download current dataset ${icon('arrow')}</button></aside></div><div class="explainer">${icon('shield')}<div><strong>Your data & AI provider</strong><p>Dataset files are stored on this server. ${config.ai?.provider === 'openai' ? 'OpenAI mode sends role, skills, career goals and activity evidence to the OpenAI API. Employee names, IDs and raw history are excluded.' : 'Recommendations use local rules or a locally configured Ollama model.'}</p></div></div>`;
+  document.querySelector('#content').innerHTML = heading('BRING THE BIGGER PICTURE', 'A home for your development data.', 'Import starter-kit or jury profiles and history. Validate everything before applying it.') + `<div class="import-grid"><section class="panel"><h2>Upload a dataset</h2><p class="muted">Select a combined JSON dataset, or select the starter-kit files together. Maximum request size: 8 MB.</p><label class="upload-zone" for="dataset-files">${icon('upload')}<strong>Choose your dataset files</strong><span>JSON or CSV · you can select multiple files</span><input id="dataset-files" type="file" accept=".json,.csv" multiple></label><div id="import-files" class="muted"></div><div id="import-feedback" role="status"></div><div class="import-actions"><button class="button primary" id="validate-import" disabled>Validate files ${icon('check')}</button><button class="button secondary" id="apply-import" disabled>Import validated data ${icon('arrow')}</button></div></section><aside class="panel import-help"><span class="pill pale">Jury-ready workflow</span><h2>Connect the context.</h2><ul><li><strong>employees.json</strong><span>Role, grade, tenure and current skill levels.</span></li><li><strong>events.json</strong><span>Audience, activity type, skill gains and caps.</span></li><li><strong>skills.json</strong><span>Skill definitions and grade requirements.</span></li><li><strong>activity_history.csv</strong><span>Participation, no-shows and declined activities.</span></li></ul><p class="muted">Profiles, skills and events merge by ID. Uploaded history replaces the history of employees represented in that file. For starter-kit profiles, completed activities dated after the last review are applied once to the assessment baseline, respecting skill caps.</p><p>Dataset export excludes personal plans. Use a full backup to restore all data.</p><button class="text-button" id="export-backup">Download full backup</button><button id="export-data" class="text-button">Download current dataset ${icon('arrow')}</button></aside></div><div class="explainer">${icon('shield')}<div><strong>Your data & AI provider</strong><p>Dataset files are stored on this server. ${config.ai?.provider === 'openai' ? 'OpenAI mode sends role, skills, career goals and activity evidence to the OpenAI API. Employee names, IDs and raw history are excluded.' : 'Recommendations use local rules or a locally configured Ollama model.'}</p></div></div>`;
   let pending, validated;
   const feedback = document.querySelector('#import-feedback'), validate = document.querySelector('#validate-import'), apply = document.querySelector('#apply-import');
   document.querySelector('#dataset-files').onchange = async e => {
@@ -221,14 +223,14 @@ function renderImport() {
       if (files.reduce((n, f) => n + f.size, 0) > 7 * 1024 * 1024) throw new Error('Select files totaling at most 7 MB (8 MB request limit).');
       if (files.length === 1 && files[0].name.endsWith('.json')) {
         const parsed = JSON.parse((await files[0].text()).replace(/^\uFEFF/, ''));
-        pending = !Array.isArray(parsed) && ['employees', 'events', 'skills', 'history', 'activity_history'].some(k => parsed[k] !== undefined) ? { dataset: parsed } : { files: [{ name: files[0].name, text: JSON.stringify(parsed) }] };
+        pending = parsed?.kind === 'career-quest-backup' || (!Array.isArray(parsed) && ['employees', 'events', 'skills', 'history', 'activity_history'].some(k => parsed?.[k] !== undefined)) ? { dataset: parsed } : { files: [{ name: files[0].name, text: JSON.stringify(parsed) }] };
       } else pending = { files: await Promise.all(files.map(async f => ({ name: f.name, text: await f.text() }))) };
       validate.disabled = false;
     } catch (error) { feedback.className = 'error-box'; feedback.textContent = error instanceof SyntaxError ? 'Invalid JSON file. Check its syntax and try again.' : error.message; }
   };
   validate.onclick = async () => {
     validate.disabled = true; apply.disabled = true;
-    try { validated = await api('/api/hr/import', { ...pending, preview: true }); feedback.className = 'success-box'; feedback.textContent = `Validation passed. Result: ${validated.counts.employees} profiles, ${validated.counts.events} events, ${validated.counts.skills} skills and ${validated.counts.history} history records. Ready to import.`; apply.disabled = false; }
+    try { validated = await api('/api/hr/import', { ...pending, preview: true }); feedback.className = 'success-box'; feedback.textContent = `Validation passed. Result: ${validated.counts.employees} profiles, ${validated.counts.events} events, ${validated.counts.skills} skills and ${validated.counts.history} history records. Ready to import.`; if (validated.duplicate_completions) feedback.textContent += ' Duplicate completions do not grant extra skill gains.'; if (validated.restoring) feedback.textContent += ' Restoring this backup replaces all current data and personal plans.'; apply.textContent = validated.restoring ? 'Restore full backup' : 'Import validated data'; apply.disabled = false; }
     catch (error) { feedback.className = 'error-box'; feedback.textContent = error instanceof SyntaxError ? 'Invalid JSON file. Check its syntax and try again.' : error.message; }
     finally { validate.disabled = false; }
   };
@@ -237,9 +239,9 @@ function renderImport() {
     try { const result = await api('/api/hr/import', { ...pending, revision: validated.revision }); feedback.className = 'success-box'; feedback.textContent = result.message + ' Open Team overview to inspect imported profiles.'; toast(result.message); }
     catch (error) { feedback.className = 'error-box'; feedback.textContent = error instanceof SyntaxError ? 'Invalid JSON file. Check its syntax and try again.' : error.message; validate.disabled = false; }
   };
-  document.querySelector('#export-data').onclick = async () => {
-    try { const dataset = await api('/api/hr/export'); const url = URL.createObjectURL(new Blob([JSON.stringify(dataset, null, 2)], { type: 'application/json' })); const link = document.createElement('a'); link.href = url; link.download = 'career-quest-dataset.json'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
+  for (const [id, endpoint, filename] of [['export-data', 'export', 'career-quest-dataset.json'], ['export-backup', 'backup', 'career-quest-backup.json']]) document.querySelector('#' + id).onclick = async () => {
+    try { const dataset = await api('/api/hr/' + endpoint); const url = URL.createObjectURL(new Blob([JSON.stringify(dataset, null, 2)], { type: 'application/json' })); const link = document.createElement('a'); link.href = url; link.download = filename; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
     catch (error) { toast(error.message); }
   };
 }
-(async () => { try { config = await api('/api/config'); user = await api('/api/me'); view = user.role === 'hr' ? 'hr' : 'overview'; await load(); } catch { login(); } })();
+(async () => { try { config = await api('/api/config'); user = await api('/api/me'); restoreRoute(); await load(); } catch { login(); } })();

@@ -1,4 +1,4 @@
-import { normalizeLanguage, translateText } from './i18n.js';
+import { normalizeLanguage, translateText, translateKey } from './i18n.js';
 
 export function readLanguage(storage) {
   try { return normalizeLanguage(storage.getItem('career-quest-language')); } catch { return 'en'; }
@@ -24,6 +24,13 @@ export function createTranslator(document, getLanguage) {
   }
   function visit(node) {
     if (node.nodeType === 1 && (node.matches('script,style,code,textarea,[data-no-i18n]') || node.namespaceURI === 'http://www.w3.org/2000/svg')) return;
+    if (node.nodeType === 1 && node.hasAttribute('data-i18n-key')) {
+      const translated = translateKey(node.getAttribute('data-i18n-key'), getLanguage());
+      if (translated !== undefined) {
+        if (node.textContent !== translated) node.textContent = translated;
+        return;
+      }
+    }
     if (node.nodeType === 3) {
       update(node, 'text', () => node.nodeValue, value => { node.nodeValue = value; });
       return;

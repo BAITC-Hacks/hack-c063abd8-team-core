@@ -1,13 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
-import { translateText, messages, normalizeLanguage, localizeDates } from '../public/i18n.js';
+import { translateText, translateKey, messages, normalizeLanguage, localizeDates } from '../public/i18n.js';
 import { readLanguage, writeLanguage, createTranslator, languagePicker } from '../public/language.js';
 import { aiRecommendations } from '../lib/ai.js';
 import { createSeed } from '../lib/seed.js';
 import { recommend } from '../lib/domain.js';
 
 test('language selection persists, accepts KZ alias, and survives blocked storage', () => {
+  assert.equal(translateKey('nav.overview', 'kk'), 'Шолу');
+  assert.equal(translateKey('nav.path', 'ru'), 'Мой путь развития');
   const storage = { data: {}, getItem(k) { return this.data[k]; }, setItem(k,v) { this.data[k] = v; } };
   assert.equal(readLanguage(storage), 'en');
   assert.equal(writeLanguage(storage, 'kz'), 'kk'); assert.equal(readLanguage(storage), 'kk');

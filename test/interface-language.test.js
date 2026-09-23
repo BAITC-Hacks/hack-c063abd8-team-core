@@ -6,11 +6,13 @@ import { createSeed } from '../lib/seed.js';
 import { trajectory, recommend, hrSummary } from '../lib/domain.js';
 import { translateText } from '../public/i18n.js';
 import { languagePicker } from '../public/language.js';
+import { icon, esc, brand, heading } from '../public/components.js';
+import { readRoute, routeHash } from '../public/routes.js';
 import { loadDatasetDirectory } from '../lib/dataset-loader.js';
 
 // Exercise the real page renderers, including text split by inline markup.
 // This checks generated content; it does not simulate browser layout.
-for (const dataset of ['demo', 'source']) test(`Kazakh covers employee and HR pages with ${dataset} data`, { skip: dataset === 'source' && !existsSync('data/source/employees.json') }, () => {
+for (const dataset of ['demo', 'source']) test(`Kazakh covers employee and HR pages with ${dataset} data`, { skip: dataset === 'source' && !existsSync('data/source/employees.json') }, async () => {
   const rendered = [];
   const elements = new Map();
   const element = () => ({
@@ -18,14 +20,14 @@ for (const dataset of ['demo', 'source']) test(`Kazakh covers employee and HR pa
     set textContent(value) { this._text = value; rendered.push(`<span>${value}</span>`); },
     get textContent() { return this._text; },
     querySelector: () => element(), querySelectorAll: () => [],
-    addEventListener() {}, showModal() {}, remove() {}, classList: { add() {}, remove() {} },
+    addEventListener() {}, showModal() {}, remove() {}, focus() { this.focused = true; }, classList: { add() {}, remove() {} },
   });
   const document = { body: { append() {} }, addEventListener() {}, createElement: element,
     querySelector(selector) { if (!elements.has(selector)) elements.set(selector, element()); return elements.get(selector); },
-    querySelectorAll: () => [],
+    querySelectorAll: selector => selector === '#logout, #mobile-logout' ? [document.querySelector('#logout'), document.querySelector('#mobile-logout')] : [],
   };
   const state = dataset === 'demo' ? createSeed() : loadDatasetDirectory('data/source'), employee = state.employees[27];
-  const context = vm.createContext({ document, translateText, languagePicker,
+  const context = vm.createContext({ document, translateText, languagePicker, icon, esc, brand, heading, readRoute, routeHash, window: { addEventListener() {} },
     readLanguage: () => 'kk', createTranslator: () => ({ apply() {} }),
     MutationObserver: class { observe() {} }, state, employee, trajectory, recommend, hrSummary,
   });
@@ -60,4 +62,12 @@ for (const dataset of ['demo', 'source']) test(`Kazakh covers employee and HR pa
   }
   assert.deepEqual([...unchanged], [], 'Untranslated visible text');
   assert.match(elements.get('#people-count').textContent, /^[1-9]\d* colleagues$/, 'Localized HR search should find colleagues');
+  context.fetch = async () => ({ ok: true, json: async () => hrSummary(state) });
+  await vm.runInContext("view = 'hr'; load()", context);
+  assert.equal(elements.get('#content').focused, true);
+  let loggedOut = false;
+  context.fetch = async path => { assert.equal(path, '/api/logout'); loggedOut = true; return { ok: true, json: async () => ({ ok: true }) }; };
+  await elements.get('#mobile-logout').onclick();
+  assert.equal(loggedOut, true);
+  assert.equal(vm.runInContext('user', context), null);
 });

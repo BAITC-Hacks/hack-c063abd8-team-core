@@ -78,7 +78,8 @@ test('HR flags inactivity and repeated skips as support signals', () => {
   assert.ok(result.people.find(p => p.employee_id === 'E0028').needs_support);
 });
 test('local AI selects only eligible IDs and falls back on malformed output', async () => {
-  const previous = process.env.OLLAMA_MODEL, previousUrl = process.env.OLLAMA_URL;
+  const previous = process.env.OLLAMA_MODEL, previousUrl = process.env.OLLAMA_URL, previousProvider = process.env.AI_PROVIDER;
+  process.env.AI_PROVIDER = 'ollama';
   process.env.OLLAMA_MODEL = 'test-model'; process.env.OLLAMA_URL = 'http://127.0.0.1:11434';
   const state = createSeed(), employee = state.employees[27], candidates = recommend(state, employee);
   try {
@@ -90,6 +91,7 @@ test('local AI selects only eligible IDs and falls back on malformed output', as
     const forbidden = await aiRecommendations(employee, candidates, async () => { throw new Error('Must not fetch'); });
     assert.equal(forbidden.mode, 'rules');
   } finally {
+    if (previousProvider === undefined) delete process.env.AI_PROVIDER; else process.env.AI_PROVIDER = previousProvider;
     if (previous === undefined) delete process.env.OLLAMA_MODEL; else process.env.OLLAMA_MODEL = previous;
     if (previousUrl === undefined) delete process.env.OLLAMA_URL; else process.env.OLLAMA_URL = previousUrl;
   }
