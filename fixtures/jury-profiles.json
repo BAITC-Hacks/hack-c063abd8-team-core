@@ -1,0 +1,95 @@
+{
+  "employees": [
+    {
+      "employee_id": "JURY01",
+      "role": "Backend Engineer",
+      "grade": "Middle",
+      "tenure_months": 52,
+      "skills": {
+        "SK_PYTHON": 3,
+        "SK_SYSTEM_DESIGN": 2,
+        "SK_PUBLIC_SPEAKING": 1
+      },
+      "full_name": "Jury · Critical gap",
+      "last_review_date": "2026-09-30",
+      "career_goal": null
+    },
+    {
+      "employee_id": "JURY02",
+      "role": "Backend Engineer",
+      "grade": "Middle",
+      "tenure_months": 30,
+      "skills": {
+        "SK_PYTHON": 4,
+        "SK_SYSTEM_DESIGN": 4,
+        "SK_PUBLIC_SPEAKING": 1,
+        "SK_APP_SECURITY": 2
+      },
+      "full_name": "Jury · At activity cap",
+      "last_review_date": "2026-09-30",
+      "career_goal": null
+    },
+    {
+      "employee_id": "JURY03",
+      "role": "Backend Engineer",
+      "grade": "Junior",
+      "tenure_months": 12,
+      "skills": {
+        "SK_PYTHON": 1,
+        "SK_SYSTEM_DESIGN": 1,
+        "SK_PUBLIC_SPEAKING": 2,
+        "SK_MENTORING": 1
+      },
+      "full_name": "Jury · New colleague",
+      "last_review_date": "2026-09-30",
+      "career_goal": null
+    }
+  ],
+  "history": [
+    {
+      "employee_id": "JURY01",
+      "event_id": "EV_036",
+      "date": "2026-05-10",
+      "status": "no_show",
+      "record_id": "JURY_R0001",
+      "completion_pct": 0
+    },
+    {
+      "employee_id": "JURY01",
+      "event_id": "EV_036",
+      "date": "2026-06-10",
+      "status": "no_show",
+      "record_id": "JURY_R0002",
+      "completion_pct": 0
+    },
+    {
+      "employee_id": "JURY01",
+      "event_id": "EV_036",
+      "date": "2026-07-10",
+      "status": "declined",
+      "record_id": "JURY_R0003",
+      "completion_pct": 0
+    },
+    {
+      "employee_id": "JURY01",
+      "event_id": "EV_012",
+      "date": "2026-08-10",
+      "status": "completed",
+      "record_id": "JURY_R0004",
+      "completion_pct": 100
+    },
+    {
+      "employee_id": "JURY02",
+      "event_id": "EV_006",
+      "date": "2026-08-10",
+      "status": "completed",
+      "record_id": "JURY_R0005",
+      "completion_pct": 100
+    }
+  ],
+  "meta": {
+    "dataset": "Career Quest jury examples",
+    "version": "1.0",
+    "as_of_date": "2026-10-01"
+  }
+}
