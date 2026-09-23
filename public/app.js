@@ -1,3 +1,24 @@
+import { translateText } from './i18n.js';
+import { readLanguage, writeLanguage, createTranslator, languagePicker } from './language.js';
+let language = readLanguage({ getItem: key => localStorage.getItem(key) });
+const translator = createTranslator(document, () => language);
+let translationQueued = false;
+new MutationObserver(() => {
+  if (translationQueued) return;
+  translationQueued = true;
+  queueMicrotask(() => { translationQueued = false; translator.apply(); });
+}).observe(document.body, { childList: true, subtree: true, characterData: true });
+document.addEventListener('click', event => {
+  const button = event.target.closest('[data-language]');
+  if (!button || language === button.dataset.language) return;
+  language = writeLanguage({ setItem: (key, value) => localStorage.setItem(key, value) }, button.dataset.language);
+  translator.apply();
+  if (user && data && ['overview', 'preview'].includes(view)) {
+    document.querySelector('dialog')?.close(); document.querySelector('dialog')?.remove();
+    refreshRecommendations();
+  }
+});
+translator.apply();
 const app = document.querySelector('#app');
 const icons = {
   home: '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',
@@ -21,6 +42,25 @@ const date = value => new Date(value).toLocaleDateString('en-GB', { day: 'numeri
 let config = {};
 const initials = name => String(name || 'Employee').split(/\s+/).map(x => x[0]).slice(0, 2).join('').toUpperCase();
 let user, view = 'overview', data, recommendations, events = [], hr, selectedEmployee, activityFilter = 'all', search = '', hrFilter = 'all', requestId = 0;
+let recommendationRequest = 0;
+async function refreshRecommendations() {
+  const section = document.querySelector('#recommendations');
+  if (!section) return;
+  const id = ++recommendationRequest, page = requestId, selectedLanguage = language;
+  const query = new URLSearchParams({ lang: selectedLanguage });
+  if (user.role === 'hr') query.set('employee_id', selectedEmployee);
+  recommendations = null;
+  section.innerHTML = '<div class="recommendation-loading"><span class="spinner"></span> Considering your skill gaps, history and activity formats…</div>';
+  try {
+    const result = await api(`/api/recommendations?${query}`);
+    if (id !== recommendationRequest || page !== requestId || selectedLanguage !== language) return;
+    recommendations = result; renderRecommendations();
+  } catch (error) {
+    if (id !== recommendationRequest || page !== requestId || selectedLanguage !== language) return;
+    section.innerHTML = `<div class="empty">${esc(error.message)} <button class="text-button" id="retry-recommendations">Try again</button></div>`;
+    document.querySelector('#retry-recommendations')?.addEventListener('click', refreshRecommendations);
+  }
+}
 async function api(path, body) {
   const res = await fetch(path, body === undefined ? {} : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   const result = await res.json();
@@ -33,7 +73,7 @@ function toast(message) {
 }
 function login() {
   user = null;
-  app.innerHTML = `<main class="login"><section class="login-story"><a class="brand" href="/">${brand()}<span>career<span class="brand-light">quest</span><small>GROW WITH HALYK</small></span></a><div class="login-copy"><span class="eyebrow">YOUR POTENTIAL. YOUR PACE.</span><h1>Good things<br>are ahead.</h1><p>Turn your next step into a bigger picture.<br>A little clarity for your career journey.</p><div class="login-art"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="art-step step-one">01 <span>Discover</span></div><div class="art-step step-two">02 <span>Develop</span></div><div class="art-step step-three">03 <span>Thrive ${icon('star')}</span></div></div></div><div class="login-footer">Made for your growth. Built around you.</div></section><section class="login-form-wrap"><div class="login-form"><span class="pill pale">HackAlem AI · Halyk track</span><h2>Your next chapter<br>starts here.</h2><p class="muted">Sign in to your personal development space.</p><form id="login-form"><label for="username">Workspace</label><select id="username" name="username"><option value="employee">Employee · ${esc(config.employee_name || 'E0028')}</option><option value="hr">HR specialist</option></select><label for="password">Password</label><input id="password" type="password" name="password" value="grow-together" autocomplete="current-password" required><div id="login-error" role="alert"></div><button type="submit" class="button primary wide">Enter your workspace ${icon('arrow')}</button></form><div class="demo-note">${icon('leaf')}<div><strong>A safe space to explore</strong><p>This workspace uses ${config.employee_count || 200} synthetic profiles. Employee password: <code>grow-together</code>. HR password: <code>support-growth</code>.</p></div></div><div class="privacy-note">${icon('shield')} Your development profile stays private.</div></div></section></main>`;
+  app.innerHTML = `<main class="login"><section class="login-story"><a class="brand" href="/">${brand()}<span>career<span class="brand-light">quest</span><small>GROW WITH HALYK</small></span></a><div class="login-copy"><span class="eyebrow">YOUR POTENTIAL. YOUR PACE.</span><h1>Good things<br>are ahead.</h1><p>Turn your next step into a bigger picture.<br>A little clarity for your career journey.</p><div class="login-art"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="art-step step-one">01 <span>Discover</span></div><div class="art-step step-two">02 <span>Develop</span></div><div class="art-step step-three">03 <span>Thrive ${icon('star')}</span></div></div></div><div class="login-footer">Made for your growth. Built around you.</div></section><section class="login-form-wrap"><div class="login-form">${languagePicker()}<span class="pill pale">HackAlem AI · Halyk track</span><h2>Your next chapter<br>starts here.</h2><p class="muted">Sign in to your personal development space.</p><form id="login-form"><label for="username">Workspace</label><select id="username" name="username"><option value="employee">Employee · ${esc(config.employee_name || 'E0028')}</option><option value="hr">HR specialist</option></select><label for="password">Password</label><input id="password" type="password" name="password" value="grow-together" autocomplete="current-password" required><div id="login-error" role="alert"></div><button type="submit" class="button primary wide">Enter your workspace ${icon('arrow')}</button></form><div class="demo-note">${icon('leaf')}<div><strong>A safe space to explore</strong><p>This workspace uses ${config.employee_count || 200} synthetic profiles. Employee password: <code>grow-together</code>. HR password: <code>support-growth</code>.</p></div></div><div class="privacy-note">${icon('shield')} Your development profile stays private.</div></div></section></main>`;
   document.querySelector('#username').onchange = e => { document.querySelector('#password').value = e.target.value === 'hr' ? 'support-growth' : 'grow-together'; };
   document.querySelector('#login-form').onsubmit = async e => {
     e.preventDefault(); const button = e.target.querySelector('button'); button.disabled = true;
@@ -45,7 +85,7 @@ function brand() { return '<span class="brand-mark"><svg viewBox="0 0 32 32" wid
 function navItem(id, name, symbol, extra = '') { return `<button class="nav-item ${view === id ? 'active' : ''}" data-view="${id}" ${view === id ? 'aria-current="page"' : ''}>${icon(symbol)}<span>${name}</span>${extra}</button>`; }
 function shell() {
   const isHR = user.role === 'hr';
-  app.innerHTML = `<div class="layout"><aside class="sidebar"><a class="brand" href="/">${brand()}<span>career<span class="brand-light">quest</span><small>GROW WITH HALYK</small></span></a><div class="workspace-label">${isHR ? 'PEOPLE & DEVELOPMENT' : 'YOUR WORKSPACE'}</div><nav aria-label="Main navigation">${isHR ? navItem('hr', 'Team overview', 'home') + navItem('import', 'Data workspace', 'upload') : navItem('overview', 'Overview', 'home') + navItem('path', 'My growth path', 'path') + navItem('activities', 'Explore activities', 'book') + navItem('journal', 'My journey', 'clock')}</nav><div class="sidebar-bottom"><div class="gentle-note">${icon('leaf')}<strong>Small steps.<br>Meaningful growth.</strong><p>Your journey is your own.<br>Let’s make it a good one.</p></div><div class="sidebar-user"><span class="avatar small">${isHR ? 'HR' : esc(initials(user.name))}</span><span><strong>${esc(user.name)}</strong><small>${isHR ? 'HR specialist' : 'Employee workspace'}</small></span><button class="icon-button" id="logout" aria-label="Sign out">${icon('out')}</button></div></div></aside><div class="main-wrap"><header class="topbar"><div class="breadcrumb">Workspace <span>/</span> <strong>${({ overview: 'Overview', path: 'My growth path', activities: 'Explore activities', journal: 'My journey', hr: 'Team overview', import: 'Data workspace', preview: 'Profile preview' })[view]}</strong></div><div class="topbar-right"><span class="private-label">${icon('shield')} ${isHR ? 'HR access' : 'Only visible to you & HR'}</span><span class="avatar">${isHR ? 'HR' : esc(initials(user.name))}</span></div></header><main id="content" tabindex="-1"></main><footer class="main-footer"><span>Career Quest <span class="footer-dot">·</span> A little progress, every day.</span><span>Synthetic dataset${config.snapshot_date ? ' \u00b7 ' + esc(config.snapshot_date) : ''}</span></footer></div></div>`;
+  app.innerHTML = `<div class="layout"><aside class="sidebar"><a class="brand" href="/">${brand()}<span>career<span class="brand-light">quest</span><small>GROW WITH HALYK</small></span></a><div class="workspace-label">${isHR ? 'PEOPLE & DEVELOPMENT' : 'YOUR WORKSPACE'}</div><nav aria-label="Main navigation">${isHR ? navItem('hr', 'Team overview', 'home') + navItem('import', 'Data workspace', 'upload') : navItem('overview', 'Overview', 'home') + navItem('path', 'My growth path', 'path') + navItem('activities', 'Explore activities', 'book') + navItem('journal', 'My journey', 'clock')}</nav><div class="sidebar-bottom"><div class="gentle-note">${icon('leaf')}<strong>Small steps.<br>Meaningful growth.</strong><p>Your journey is your own.<br>Let’s make it a good one.</p></div><div class="sidebar-user"><span class="avatar small">${isHR ? 'HR' : esc(initials(user.name))}</span><span><strong data-no-i18n>${esc(user.name)}</strong><small>${isHR ? 'HR specialist' : 'Employee workspace'}</small></span><button class="icon-button" id="logout" aria-label="Sign out">${icon('out')}</button></div></div></aside><div class="main-wrap"><header class="topbar"><div class="breadcrumb">Workspace <span>/</span> <strong>${({ overview: 'Overview', path: 'My growth path', activities: 'Explore activities', journal: 'My journey', hr: 'Team overview', import: 'Data workspace', preview: 'Profile preview' })[view]}</strong></div><div class="topbar-right">${languagePicker()}<span class="private-label">${icon('shield')} ${isHR ? 'HR access' : 'Only visible to you & HR'}</span><span class="avatar">${isHR ? 'HR' : esc(initials(user.name))}</span></div></header><main id="content" tabindex="-1"></main><footer class="main-footer"><span>Career Quest <span class="footer-dot">·</span> A little progress, every day.</span><span>Synthetic dataset${config.snapshot_date ? ' \u00b7 ' + esc(config.snapshot_date) : ''}</span></footer></div></div>`;
   document.querySelectorAll('[data-view]').forEach(el => el.onclick = () => { view = el.dataset.view; search = ''; load(); });
   document.querySelector('#logout').onclick = async () => { try { await api('/api/logout', {}); ++requestId; login(); } catch (e) { toast(e.message); } };
 }
@@ -64,8 +104,7 @@ async function load() {
       [data, events] = result;
       recommendations = null; renderEmployee();
       if (['overview', 'preview'].includes(view)) {
-        try { const result = await api(`/api/recommendations${query}`); if (id !== requestId) return; recommendations = result; renderRecommendations(); }
-        catch (error) { if (id === requestId) document.querySelector('#recommendations').innerHTML = `<div class="empty">${esc(error.message)} <button class="text-button" id="retry-recommendations">Try again</button></div>`; document.querySelector('#retry-recommendations')?.addEventListener('click', load); }
+        await refreshRecommendations();
       }
     }
   } catch (error) {
@@ -128,7 +167,7 @@ function openActivity(id) {
   const event = recommendations?.recommendations.find(e => e.event_id === id) || events.find(e => e.event_id === id);
   if (!event) return;
   const enrolled = data.enrollments.some(e => e.event_id === id), completed = !event.recurring && data.history.some(h => h.event_id === id && h.status === 'completed');
-  const dialog = showDialog(`<span class="eyebrow">${esc(event.type)} · ${event.duration_hours} HOURS · VOLUNTARY</span><h2>${esc(event.title)}</h2><p class="muted">${esc(event.description || '')}</p>${event.ai_rationale ? `<div class="ai-rationale"><h3>${icon('star')} ${recommendations?.mode === 'openai' ? 'OpenAI' : 'Local AI'} reasoning</h3><p>${esc(event.ai_rationale)}</p><small>Model-generated explanation; check the verified evidence below.</small></div>` : ''}${event.evidence ? `<h3>Why this step fits</h3><ul class="evidence-list">${event.evidence.map(e => `<li>${esc(e)}</li>`).join('')}</ul><p class="score-note">Multi-factor score: ${event.score}. Considers gap closure, gap size, participation history, format and effort.</p>` : ''}${event.caution ? `<div class="caution">${esc(event.caution)}</div>` : ''}${event.format ? `<p class="muted">Format: ${esc(event.format.replace('_', ' '))}${event.recurring ? ' · Recurring activity' : ''}${event.upcoming_sessions?.length ? ' · Next sessions: ' + event.upcoming_sessions.slice(0, 3).map(date).join(', ') : ''}</p>` : ''}<h3>What changes when you complete it</h3><div class="change-list">${event.changes.map(c => `<div><span>${esc(c.name || c.skill_id)}</span><strong>${c.before} ${icon('arrow')} ${c.after}</strong><small>Gain ${c.gain}, activity cap ${c.max_level}, scale 0–5</small></div>`).join('')}</div><p class="formula">New level = max(current, min(5, activity cap, current + gain)). Your level never decreases.</p><div class="dialog-actions">${user.role === 'hr' ? '<p class="muted">HR preview is read-only.</p>' : completed ? `<span class="completed-label">${icon('check')} Already completed</span>` : enrolled ? `<p class="muted">Demo: completion is self-reported and immediately updates your skills.</p><button class="button primary" id="complete">${icon('check')} Mark as completed</button><button class="text-button" id="withdraw">Leave activity</button>` : `<button class="button primary" data-join="${esc(id)}">Add to my plan ${icon('arrow')}</button>`}</div>`);
+  const dialog = showDialog(`<span class="eyebrow">${esc(event.type)} · ${event.duration_hours} HOURS · VOLUNTARY</span><h2>${esc(event.title)}</h2><p class="muted">${esc(event.description || '')}</p>${event.ai_rationale ? `<div class="ai-rationale"><h3>${icon('star')} ${recommendations?.mode === 'openai' ? 'OpenAI' : 'Local AI'} reasoning</h3><p data-no-i18n>${esc(event.ai_rationale)}</p><small>Model-generated explanation; check the verified evidence below.</small></div>` : ''}${event.evidence ? `<h3>Why this step fits</h3><ul class="evidence-list">${event.evidence.map(e => `<li>${esc(e)}</li>`).join('')}</ul><p class="score-note">Multi-factor score: ${event.score}. Considers gap closure, gap size, participation history, format and effort.</p>` : ''}${event.caution ? `<div class="caution">${esc(event.caution)}</div>` : ''}${event.format ? `<p class="muted">Format: ${esc(event.format.replace('_', ' '))}${event.recurring ? ' · Recurring activity' : ''}${event.upcoming_sessions?.length ? ' · Next sessions: ' + event.upcoming_sessions.slice(0, 3).map(date).join(', ') : ''}</p>` : ''}<h3>What changes when you complete it</h3><div class="change-list">${event.changes.map(c => `<div><span>${esc(c.name || c.skill_id)}</span><strong>${c.before} ${icon('arrow')} ${c.after}</strong><small>Gain ${c.gain}, activity cap ${c.max_level}, scale 0–5</small></div>`).join('')}</div><p class="formula">New level = max(current, min(5, activity cap, current + gain)). Your level never decreases.</p><div class="dialog-actions">${user.role === 'hr' ? '<p class="muted">HR preview is read-only.</p>' : completed ? `<span class="completed-label">${icon('check')} Already completed</span>` : enrolled ? `<p class="muted">Demo: completion is self-reported and immediately updates your skills.</p><button class="button primary" id="complete">${icon('check')} Mark as completed</button><button class="text-button" id="withdraw">Leave activity</button>` : `<button class="button primary" data-join="${esc(id)}">Add to my plan ${icon('arrow')}</button>`}</div>`);
   bindActivities(dialog);
   dialog.querySelector('#complete')?.addEventListener('click', e => activityAction('complete', id, e.currentTarget));
   dialog.querySelector('#withdraw')?.addEventListener('click', e => activityAction('withdraw', id, e.currentTarget));
@@ -145,7 +184,7 @@ function renderActivities() {
   renderActivityResults();
 }
 function renderActivityResults() {
-  const filtered = events.filter(e => (activityFilter === 'all' || (activityFilter === 'joined' ? e.joined : e.type === activityFilter)) && `${e.title} ${e.description} ${e.changes.map(c => c.name).join(' ')}`.toLowerCase().includes(search.toLowerCase()));
+  const filtered = events.filter(e => (activityFilter === 'all' || (activityFilter === 'joined' ? e.joined : e.type === activityFilter)) && [e.title, e.description, ...e.changes.map(c => c.name)].flatMap(text => [text || '', translateText(text || '', language)]).join(' ').toLocaleLowerCase().includes(search.toLocaleLowerCase()));
   document.querySelector('#results-count').textContent = `${filtered.length} opportunities for you`;
   const el = document.querySelector('#activity-results'); el.innerHTML = filtered.map((e, i) => activityCard(e, i)).join('') || '<div class="empty">No matching activities. Try another filter or add an activity to your plan.</div>';
   bindActivities(el);
@@ -163,7 +202,7 @@ function renderHR() {
 }
 function renderPeople() {
   const people = hr.people.filter(p => (hrFilter === 'all' || p.needs_support) && `${p.name || ''} ${p.employee_id} ${p.department || ''}`.toLowerCase().includes(search.toLowerCase())).sort((a, b) => (a.name || a.employee_id).localeCompare(b.name || b.employee_id));
-  document.querySelector('#people-rows').innerHTML = people.map(p => `<tr><td><strong>${esc(p.name || p.employee_id)}</strong><small>${esc(p.employee_id)} · ${esc(p.role)}</small></td><td>${esc(p.department || 'Unassigned')}</td><td><span class="grade-tag">${esc(p.grade)}</span></td><td><div class="table-progress"><span style="width:${p.readiness || 0}%"></span></div>${p.readiness === null ? '—' : p.readiness + '%'}</td><td><span class="status ${p.needs_support ? 'support' : 'active-status'}" title="${esc(p.needs_support ? p.support_reason : 'Recent completed activity')}">${p.needs_support ? 'Offer support' : 'Active'}</span></td><td><button class="icon-button" data-preview="${esc(p.employee_id)}" aria-label="View ${esc(p.name || p.employee_id)} profile">${icon('arrow')}</button></td></tr>`).join('') || '<tr><td colspan="6">No matching colleagues.</td></tr>';
+  document.querySelector('#people-rows').innerHTML = people.map(p => `<tr><td><strong data-no-i18n>${esc(p.name || p.employee_id)}</strong><small>${esc(p.employee_id)} · ${esc(p.role)}</small></td><td>${esc(p.department || 'Unassigned')}</td><td><span class="grade-tag">${esc(p.grade)}</span></td><td><div class="table-progress"><span style="width:${p.readiness || 0}%"></span></div>${p.readiness === null ? '—' : p.readiness + '%'}</td><td><span class="status ${p.needs_support ? 'support' : 'active-status'}" title="${esc(p.needs_support ? p.support_reason : 'Recent completed activity')}">${p.needs_support ? 'Offer support' : 'Active'}</span></td><td><button class="icon-button" data-preview="${esc(p.employee_id)}" aria-label="View ${esc(p.name || p.employee_id)} profile">${icon('arrow')}</button></td></tr>`).join('') || '<tr><td colspan="6">No matching colleagues.</td></tr>';
   document.querySelector('#people-count').textContent = `${people.length} colleagues`;
   document.querySelectorAll('[data-preview]').forEach(el => el.onclick = () => { selectedEmployee = el.dataset.preview; view = 'preview'; load(); });
 }
@@ -174,7 +213,7 @@ function renderImport() {
   document.querySelector('#dataset-files').onchange = async e => {
     pending = null; validated = null; apply.disabled = true; validate.disabled = true; feedback.textContent = '';
     const files = [...e.target.files];
-    document.querySelector('#import-files').textContent = files.map(f => `${f.name} (${Math.ceil(f.size / 1024)} KB)`).join(' ? ');
+    document.querySelector('#import-files').textContent = files.map(f => `${f.name} (${Math.ceil(f.size / 1024)} KB)`).join(' \u00b7 ');
     if (!files.length) return;
     try {
       if (files.reduce((n, f) => n + f.size, 0) > 7 * 1024 * 1024) throw new Error('Select files totaling at most 7 MB (8 MB request limit).');
