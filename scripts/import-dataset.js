@@ -2,10 +2,12 @@ import { copyFileSync, existsSync, mkdirSync, renameSync, writeFileSync } from '
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadDatasetDirectory } from '../lib/dataset-loader.js';
+import { repairCatalog } from '../lib/catalog-repair.js';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const source = resolve(process.argv[2] || resolve(root, 'data/source'));
 const stateFile = process.env.STATE_FILE || resolve(root, 'data/state.json');
 const state = loadDatasetDirectory(source);
+repairCatalog(state);
 // Stop the server before using this offline migration. Existing state is recoverable.
 if (existsSync(stateFile)) {
   const backupDir = resolve(root, 'data/backups'); mkdirSync(backupDir, { recursive: true });

@@ -11,6 +11,7 @@ import { asOf, datasetFromFiles, uniqueCompletions } from './lib/dataset.js';
 import { loadDatasetDirectory } from './lib/dataset-loader.js';
 import { normalizeLanguage } from './public/i18n.js';
 import { redactSecrets } from './lib/secrets.js';
+import { repairCatalog, catalogHealth } from './lib/catalog-repair.js';
 
 const root = dirname(fileURLToPath(import.meta.url));
 if (process.env.LOAD_ENV_FILE !== 'false' && existsSync(resolve(root, '.env'))) process.loadEnvFile(resolve(root, '.env'));
@@ -22,6 +23,7 @@ const sessions = new Map(), attempts = new Map();
 const importPreviews = new Map();
 const recommendationCache = new Map();
 let revision = 0;
+let catalogStatus;
 const port = Number(process.env.PORT || 3000);
 const host = process.env.HOST || '127.0.0.1';
 if (!['127.0.0.1', 'localhost', '::1'].includes(host) && (!process.env.EMPLOYEE_PASSWORD || !process.env.HR_PASSWORD)) throw new Error('Set EMPLOYEE_PASSWORD and HR_PASSWORD before binding to a network interface.');
@@ -30,12 +32,16 @@ const accounts = {
   hr: { password: process.env.HR_PASSWORD || 'support-growth', role: 'hr', name: 'HR workspace' },
 };
 function save(next) {
+  repairCatalog(next);
+  catalogStatus = catalogHealth(next);
   mkdirSync(dirname(stateFile), { recursive: true });
   writeFileSync(`${stateFile}.tmp`, JSON.stringify(next, null, 2), { mode: 0o600 });
   renameSync(`${stateFile}.tmp`, stateFile);
   state = next; revision++; recommendationCache.clear();
 }
-if (!existsSync(stateFile)) save(state);
+const initialRepair = repairCatalog(state);
+if (!existsSync(stateFile) || initialRepair.added.length) save(state);
+else catalogStatus = catalogHealth(state);
 function json(res, status, data) { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(redactSecrets(JSON.stringify(data))); }
 function fail(status, message) { const err = new Error(message); err.status = status; throw err; }
 async function body(req) {
@@ -150,7 +156,7 @@ export const server = http.createServer(async (req, res) => {
     }
     if (route.startsWith('/api/hr/')) {
       if (session.role !== 'hr') fail(403, 'HR access is required.');
-      if (route === '/api/hr/summary' && req.method === 'GET') return json(res, 200, hrSummary(state));
+      if (route === '/api/hr/summary' && req.method === 'GET') return json(res, 200, { ...hrSummary(state), catalog: catalogStatus });
       if (route === '/api/hr/backup' && req.method === 'GET') return json(res, 200, exportBackup(state));
       if (route === '/api/hr/export' && req.method === 'GET') return json(res, 200, { meta: state.meta, role_profiles: state.role_profiles, proficiency_scale: state.proficiency_scale, employees: state.employees, events: state.events, skills: state.skills, history: state.history });
       if (route === '/api/hr/import' && req.method === 'POST') {
@@ -167,11 +173,12 @@ export const server = http.createServer(async (req, res) => {
         }
         const restoring = payload?.kind === 'career-quest-backup';
         const candidate = restoring ? restoreBackup(payload) : mergeImport(state, payload);
+        const repaired = repairCatalog(candidate);
         const counts = Object.fromEntries(['employees', 'events', 'skills', 'history'].map(k => [k, candidate[k].length]));
         if (b.preview) {
           for (const [token, preview] of importPreviews) if (preview.expires < Date.now()) importPreviews.delete(token);
           importPreviews.set(session.token, { digest, revision, expires: Date.now() + 10 * 60000 });
-          return json(res, 200, { counts, restoring, duplicate_completions: candidate.history.filter(h => h.status === 'completed').length - uniqueCompletions(candidate).length, message: 'Validated. Ready to import.', revision });
+          return json(res, 200, { counts, restoring, added_practice: repaired.added.length, duplicate_completions: candidate.history.filter(h => h.status === 'completed').length - uniqueCompletions(candidate).length, message: 'Validated. Ready to import.', revision });
         }
         if (b.revision !== revision) fail(409, 'Data changed since validation. Validate your files again.');
         save(candidate); importPreviews.delete(session.token); return json(res, 200, { counts, message: 'Dataset imported successfully.' });

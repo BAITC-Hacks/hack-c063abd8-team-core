@@ -59,6 +59,9 @@ test('API enforces permissions, validates imports and persists completion', asyn
     const malformed = await request('/api/hr/import', hr, { files: [{ name: 'employees.json', text: secret }], preview: true });
     assert.equal(malformed.status, 400);
     assert.equal((await request('/api/hr/summary', hr)).data.total, 200);
+    const coverage = (await request('/api/hr/summary', hr)).data.catalog;
+    assert.equal(coverage.current.without_recommendations, 0);
+    assert.ok(coverage.generated_activities > 0);
     assert.equal((await request('/api/complete', hr, { event_id: 'EV001' })).status, 403);
     const dataset = { employees: [{ ...disk.employees[27], employee_id: 'JURY_NEW', name: 'Jury test' }] };
     const preview = await request('/api/hr/import', hr, { dataset, preview: true });

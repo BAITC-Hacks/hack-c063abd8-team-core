@@ -147,6 +147,12 @@ Tests cover permissions, persistence, adversarial ranking, original starter-kit 
 
 In the HR data workspace, **Download current dataset** exports the data collections for merging; it does not include personal plans. **Download full backup** includes all saved skill levels, manual enrollments and withdrawals. To restore it, choose that JSON file, validate it, review the replacement notice, then select **Restore full backup**. Restoration replaces the entire state without replaying history; sessions and API credentials are not included.
 
-Repeated completion rows remain in the audit history, but only the earliest completion per employee/event grants skill credit. Recurring events grant credit once per session (`session_date`, falling back to the historical `date`). Import preview reports duplicate completions. Existing saved states are not automatically rewritten.
+Repeated completion rows remain in the audit history, but only the earliest completion per employee/event grants skill credit. Recurring events grant credit once per session (`session_date`, falling back to the historical `date`). Import preview reports duplicate completions. Existing saved skill levels are not automatically recalculated.
 
 Screens use links such as `#/activities` and `#/path`; HR previews use `#/preview?employee=E0028`. Refresh and browser Back/Forward retain the screen, and navigation focuses the main content. Shared markup is in `public/components.js`, routing in `public/routes.js`, and navigation translations use stable keys.
+
+## Automatic catalog supplementation
+
+The server checks catalog coverage at startup and after changes, including imports, backup restoration and activity completion. `lib/catalog-repair.js` simulates learning paths without changing employee assessments, history or enrollment. It retains the supplied courses and adds deterministic, clearly marked self-study practice when a path runs out of usable activities (missing skills, completed courses, prerequisite barriers, level caps or unavailable sessions). Later steps require the previous skill level; each completion grants at most one level, capped at that step. Rechecking is idempotent, and existing suitable catalog activities take priority in recommendations.
+
+These are proposed practice tasks with instructions, not verified external courses or scheduled classes. Completion remains self-reported in this demo. No OpenAI key or external service is required. The HR overview shows original and supplemented coverage. Import preview includes newly added practice; a backup restores saved progress and plans, then checks its catalog for missing paths. Generated events are persisted in the application state, not written into `data/source/`.

@@ -6,9 +6,10 @@ import { createSeed } from '../lib/seed.js';
 import { trajectory, recommend, hrSummary } from '../lib/domain.js';
 import { translateText } from '../public/i18n.js';
 import { languagePicker } from '../public/language.js';
-import { icon, esc, brand, heading } from '../public/components.js';
+import { icon, esc, brand, heading, catalogSummary } from '../public/components.js';
 import { readRoute, routeHash } from '../public/routes.js';
 import { loadDatasetDirectory } from '../lib/dataset-loader.js';
+import { catalogHealth } from '../lib/catalog-repair.js';
 
 // Exercise the real page renderers, including text split by inline markup.
 // This checks generated content; it does not simulate browser layout.
@@ -27,9 +28,9 @@ for (const dataset of ['demo', 'source']) test(`Kazakh covers employee and HR pa
     querySelectorAll: selector => selector === '#logout, #mobile-logout' ? [document.querySelector('#logout'), document.querySelector('#mobile-logout')] : [],
   };
   const state = dataset === 'demo' ? createSeed() : loadDatasetDirectory('data/source'), employee = state.employees[27];
-  const context = vm.createContext({ document, translateText, languagePicker, icon, esc, brand, heading, readRoute, routeHash, window: { addEventListener() {} },
+  const context = vm.createContext({ document, translateText, languagePicker, icon, esc, brand, heading, catalogSummary, readRoute, routeHash, window: { addEventListener() {} },
     readLanguage: () => 'kk', createTranslator: () => ({ apply() {} }),
-    MutationObserver: class { observe() {} }, state, employee, trajectory, recommend, hrSummary,
+    MutationObserver: class { observe() {} }, state, employee, trajectory, recommend, hrSummary, catalogHealth,
   });
   const source = readFileSync('public/app.js', 'utf8').replace(/^import .*;\r?\n/gm, '').split('(async () => { try { config =')[0];
   vm.runInContext(source, context);
@@ -44,7 +45,7 @@ for (const dataset of ['demo', 'source']) test(`Kazakh covers employee and HR pa
       view = page; shell(); renderEmployee();
     }
     renderRecommendations(); openActivity(events[0].event_id);
-    user = { role: 'hr', name: 'HR workspace' }; hr = hrSummary(state);
+    user = { role: 'hr', name: 'HR workspace' }; hr = { ...hrSummary(state), catalog: catalogHealth(state) };
     for (const page of ['hr', 'import']) { view = page; shell(); if(page === 'hr') renderHR(); else renderImport(); }
     search = translateText(hr.people[0].department, 'kk'); renderPeople();
     data.trajectory = { ...data.trajectory, next_grade: null, readiness: null };

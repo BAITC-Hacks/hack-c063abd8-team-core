@@ -9,6 +9,20 @@ const uiLabels = { 'nav.overview': 'Overview', 'nav.path': 'My growth path', 'na
 export const translateKey = (key, language) => Object.hasOwn(uiLabels, key) ? translateText(uiLabels[key], language) : undefined;
 function add(en, ru, kk) { messages[en] = { ru, kk }; }
 const rows = [
+['Automatic catalog coverage','Автоматическое дополнение каталога','Каталогты автоматты толықтыру'],
+['Missing learning steps are filled with guided self-study practice. Existing courses and assessed skills are preserved.','Недостающие шаги обучения дополняются самостоятельной практикой с заданиями. Существующие курсы и оценки навыков сохраняются.','Жетіспейтін оқу қадамдары тапсырмалары бар өздік практикамен толықтырылады. Қолданыстағы курстар мен дағды бағалары сақталады.'],
+['Employees with skill gaps','Сотрудники с дефицитами навыков','Дағдыларын дамыту қажет қызметкерлер'],
+['Without recommendations in the original catalog','Без рекомендаций в исходном каталоге','Бастапқы каталогта ұсынысы жоқ қызметкерлер'],
+['Without recommendations after supplementation','Без рекомендаций после дополнения','Толықтырудан кейін ұсынысы жоқ қызметкерлер'],
+['Automatically added practice activities','Автоматически добавленные задания','Автоматты түрде қосылған тапсырмалар'],
+['Automatically added practice','Автоматически добавленная практика','Автоматты түрде қосылған практика'],
+['Suggested self-study, not a scheduled provider course. Save your work and check it against the task before marking completion. Completion is self-reported in this demo.','Предложение для самостоятельной практики, а не курс провайдера с расписанием. Сохраните работу и проверьте выполнение задания перед отметкой о завершении. В демо завершение отмечается самостоятельно.','Бұл — кестесі бар провайдер курсы емес, өздік практикаға арналған ұсыныс. Аяқталды деп белгілемес бұрын жұмысыңызды сақтап, тапсырмаға сәйкестігін тексеріңіз. Демода аяқтауды өзіңіз белгілейсіз.'],
+['Additional guided practice will be added to cover catalog gaps.','Для заполнения пробелов каталога будут добавлены практические задания.','Каталогтағы олқылықтарды толықтыру үшін практикалық тапсырмалар қосылады.'],
+['Explain the core concepts in your own words and work through one simple example.','Объясните основные понятия своими словами и разберите один простой пример.','Негізгі ұғымдарды өз сөзіңізбен түсіндіріп, бір қарапайым мысалды талдаңыз.'],
+['Solve a small independent task and document your approach and expected result.','Самостоятельно выполните небольшое задание, опишите подход и ожидаемый результат.','Шағын тапсырманы өзіңіз орындап, тәсіліңіз бен күтілетін нәтижені сипаттаңыз.'],
+['Complete a realistic task, test the result and explain how you handled mistakes.','Выполните практическую задачу, проверьте результат и объясните, как исправляли ошибки.','Практикалық тапсырманы орындап, нәтижесін тексеріңіз және қателерді қалай түзеткеніңізді түсіндіріңіз.'],
+['Compare two approaches to a complex case and justify your choice, trade-offs and checks.','Сравните два подхода к сложной задаче, обоснуйте выбор, компромиссы и способы проверки.','Күрделі тапсырмаға екі тәсілді салыстырып, таңдауыңызды, ымыралы шешімдер мен тексеру әдістерін негіздеңіз.'],
+['Design a solution to a complex case, define review criteria and document limitations and improvements.','Разработайте решение сложной задачи, определите критерии проверки, опишите ограничения и улучшения.','Күрделі тапсырманың шешімін әзірлеп, тексеру өлшемдерін анықтаңыз, шектеулер мен жақсартуларды сипаттаңыз.'],
 ['Validate the selected files again before applying them.','Проверьте выбранные файлы повторно перед применением.','Қолданбас бұрын таңдалған файлдарды қайта тексеріңіз.'],
 ['Download full backup','Скачать полную резервную копию','Толық сақтық көшірмені жүктеп алу'],
 ['Restore full backup','Восстановить полную резервную копию','Толық сақтық көшірмені қалпына келтіру'],
@@ -251,8 +265,9 @@ const choose = (lang, ru, kk) => lang === 'ru' ? ru : kk;
 function dynamic(text, lang) {
   const tr = value => translateText(value, lang);
   let m;
+  if ((m = text.match(/^Guided practice: (.+) · level ([1-5])$/))) return choose(lang, `Практическое задание: ${tr(m[1])} · уровень ${m[2]}`, `Практикалық тапсырма: ${tr(m[1])} · ${m[2]}-деңгей`);
   if (text.startsWith('Validation passed.')) {
-    for (const suffix of [' Restoring this backup replaces all current data and personal plans.', ' Duplicate completions do not grant extra skill gains.']) {
+    for (const suffix of [' Restoring this backup replaces all current data and personal plans.', ' Duplicate completions do not grant extra skill gains.', ' Additional guided practice will be added to cover catalog gaps.']) {
       if (text.endsWith(suffix)) return tr(text.slice(0, -suffix.length)) + ' ' + tr(suffix.trim());
     }
   }

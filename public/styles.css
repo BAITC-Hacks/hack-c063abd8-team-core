@@ -2477,3 +2477,7 @@ html:not([lang="en"]) .login-copy h1 {
     flex-wrap: wrap;
   }
 }
+
+.catalog-coverage { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; }
+.catalog-coverage dt { font-size: 13px; color: #52665b; line-height: 1.5; }
+.catalog-coverage dd { margin: 8px 0 0; font-size: 24px; font-weight: 600; }

@@ -18,3 +18,7 @@ export const icon = (name, cls = '') => `<svg class="icon ${cls}" width="20" hei
 export const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 export function brand() { return '<span class="brand-mark"><svg viewBox="0 0 32 32" width="27" height="27" aria-hidden="true"><path d="M5 25V12l11-7 11 7v13l-11-7z" fill="currentColor"/></svg></span>'; }
 export function heading(eyebrow, title, subtitle, aside = '') { return `<div class="page-heading"><div><div class="eyebrow">${eyebrow}</div><h1>${title}</h1><p>${subtitle}</p></div>${aside}</div>`; }
+export function catalogSummary(health) {
+  if (!health) return '';
+  return `<section class="panel"><h2>Automatic catalog coverage</h2><p>Missing learning steps are filled with guided self-study practice. Existing courses and assessed skills are preserved.</p><dl class="catalog-coverage"><div><dt>Employees with skill gaps</dt><dd>${esc(health.current.employees_with_gaps)}</dd></div><div><dt>Without recommendations in the original catalog</dt><dd>${esc(health.original.without_recommendations)}</dd></div><div><dt>Without recommendations after supplementation</dt><dd>${esc(health.current.without_recommendations)}</dd></div><div><dt>Automatically added practice activities</dt><dd>${esc(health.generated_activities)}</dd></div></dl></section>`;
+}

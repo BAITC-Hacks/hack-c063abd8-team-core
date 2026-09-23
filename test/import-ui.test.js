@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
-import { icon, esc, brand, heading } from '../public/components.js';
+import { icon, esc, brand, heading, catalogSummary } from '../public/components.js';
 import { translateText } from '../public/i18n.js';
 import { languagePicker } from '../public/language.js';
 
@@ -15,7 +15,7 @@ function harness() {
   const nodes = new Map(), requests = [];
   const node = () => ({ innerHTML: '', textContent: '', disabled: false, querySelectorAll: () => [], classList: { add() {}, remove() {} } });
   const document = { body: {}, addEventListener() {}, querySelectorAll: () => [], querySelector(key) { if (!nodes.has(key)) nodes.set(key, node()); return nodes.get(key); } };
-  const context = vm.createContext({ document, icon, esc, brand, heading, languagePicker, translateText, structuredClone,
+  const context = vm.createContext({ document, icon, esc, brand, heading, catalogSummary, languagePicker, translateText, structuredClone,
     window: { addEventListener() {} }, MutationObserver: class { observe() {} },
     readLanguage: () => 'en', createTranslator: () => ({ apply() {} }), setTimeout() {}, clearTimeout() {},
     fetch(path, options) { const response = deferred(); requests.push({ path, body: JSON.parse(options.body), response }); return response.promise; },
