@@ -27,6 +27,20 @@ test('all dictionary entries have Russian and Kazakh; unknown source text stays 
   assert.equal(translateText('Custom imported course 42','kk'),'Custom imported course 42');
   assert.equal(translateText('Akmaral Ismailova','ru'),'Akmaral Ismailova');
 });
+test('Kazakh dates use month names even without runtime locale support', () => {
+  const original = Date.prototype.toLocaleDateString;
+  Date.prototype.toLocaleDateString = () => { throw new Error('Locale data unavailable'); };
+  try {
+    const english = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const kazakh = ['қаңтар','ақпан','наурыз','сәуір','мамыр','маусым','шілде','тамыз','қыркүйек','қазан','қараша','желтоқсан'];
+    for (const lang of ['kk','kz']) {
+      english.forEach((month, i) => assert.equal(localizeDates(`1 ${month} 2026`, lang), `1 ${kazakh[i]} 2026 жыл`));
+      assert.equal(translateText('1 Oct 2026', lang), '1 қазан 2026 жыл');
+      assert.equal(localizeDates('24 Jun 2026, 01 Oct 2026', lang), '24 маусым 2026 жыл, 1 қазан 2026 жыл');
+    }
+  } finally { Date.prototype.toLocaleDateString = original; }
+});
+
 test('dynamic labels and evidence preserve facts in both languages', () => {
   for (const lang of ['ru','kk']) {
     for (const source of ['A little closer, Akmaral.', '17 opportunities for you', 'Assessment: 24 Jun 2026. 3 completed activities after that date are reflected in current levels. Snapshot: 2026-10-01.', 'System Design: 2/4 for Senior Backend Engineer (critical requirement); this activity takes you to 3/4.', '2 completed and 3 skipped or declined activities developing the same skills.', '75% completion across 4 previous online activities.', 'Gain 1, activity cap 4, scale 0–5', 'Completed · On time']) {

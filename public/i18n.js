@@ -291,8 +291,11 @@ function terms(text, lang) {
 }
 export function localizeDates(text, lang) {
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sept','Oct','Nov','Dec'];
+  // Some runtimes lack Kazakh locale data and display numeric CLDR placeholders (M10).
+  const kazakhMonths = ['қаңтар','ақпан','наурыз','сәуір','мамыр','маусым','шілде','тамыз','қыркүйек','қазан','қараша','желтоқсан'];
   return text.replace(/\b(\d{1,2}) (Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?) (\d{4})\b/g, (_,day,month,year) => {
     const index = months.findIndex(m => m.slice(0,3) === month.slice(0,3));
+    if (normalizeLanguage(lang) === 'kk') return `${Number(day)} ${kazakhMonths[index]} ${year} жыл`;
     return new Date(Date.UTC(+year,index,+day)).toLocaleDateString(locales[normalizeLanguage(lang)],{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
   });
 }
