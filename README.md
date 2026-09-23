@@ -1,158 +1,157 @@
 # Career Quest
 
-**Language:** **English (ENG)** | [Русский (RU)](README.ru.md) | [Қазақша (KZ)](README.kz.md)
+**Язык:** [English (EN)](README.en.md) | **Русский (RU)** | [Қазақша (KZ)](README.kz.md)
 
-An employee development navigator for the HackAlem AI Halyk Bank track. Includes explainable recommendations, career trajectories, voluntary activities, skill updates, a development journal, HR analytics and jury-data imports.
+## Краткое описание
 
-## Run
+Career Quest — навигатор развития сотрудников для трека Halyk Bank на HackAlem AI. Он помогает сотруднику выбирать обучение с учётом навыков и карьерных целей, а HR — видеть дефициты навыков и сотрудников, которым может пригодиться поддержка.
 
-Requires Node.js 22+. No package installation or frontend build is needed.
+Проект решает практическую проблему: каталог курсов сам по себе не объясняет, что изучать дальше и хватит ли доступных активностей для достижения цели конкретного сотрудника.
 
-```sh
-npm start
+## Что реализовано
+
+- Кабинеты сотрудника и HR с проверкой прав на сервере.
+- Карьерная траектория, текущие и целевые уровни навыков, показатель готовности.
+- Объяснимые рекомендации с учётом дефицитов, критических требований, истории участия, формата и длительности. Подключаемый ИИ выбирает 1–3 активности из допустимых кандидатов.
+- Каталог добровольных активностей, личный план, запись, отказ, завершение и история развития.
+- Автоматическое дополнение каталога заданиями для самостоятельной практики, если доступных шагов обучения недостаточно. Исходные курсы и оценки навыков сохраняются.
+- Аналитика HR, просмотр профилей сотрудников и отчёт о покрытии каталога.
+- Импорт JSON/CSV с предпросмотром, экспорт датасета и полные резервные копии с личными планами.
+- Интерфейс на русском, английском и казахском, сохранение выбранного языка и адреса экранов, например `#/activities`.
+
+## Как работает решение
+
+1. Сервер загружает профили сотрудников, навыки, требования к ролям, активности и историю участия.
+2. Рассчитывает разрыв до указанной карьерной цели либо до следующего грейда в текущей роли.
+3. Проверяет роль, грейд, предварительные требования, завершённые активности и доступные сессии, затем ранжирует варианты. Если пути обучения не хватает, добавляет шаги самостоятельной практики.
+4. Сотрудник получает рекомендации с расчётными обоснованиями и, при подключённом ИИ, отдельным объяснением модели.
+5. Сотрудник добавляет активность в план и отмечает завершение. Демо обновляет навыки в пределах ограничений активности, рекомендации и показатели HR.
+
+Повторные завершения остаются в истории, но не дают повторного прироста и не завышают аналитику или рейтинг рекомендаций. Для повторяемых активностей учитывается сессия. Автоматически добавленные задания помечены отдельно; само дополнение каталога не повышает навыки.
+
+## Технологии
+
+| Область | Реализация |
+| --- | --- |
+| Сервер | JavaScript ES modules, Node.js 22+, встроенные HTTP API и работа с файлами |
+| Интерфейс | HTML, CSS, обычный JavaScript; без фронтенд-фреймворка и этапа сборки |
+| Хранение | Локальный JSON-файл с атомарной заменой; исходные данные JSON/CSV |
+| Рекомендации | Локальные детерминированные правила; опционально OpenAI или Ollama |
+| OpenAI | Responses API с JSON-схемой; модель по умолчанию `gpt-4.1-mini`, настраивается |
+| Ollama | Локальный `/api/chat`; модель устанавливает пользователь |
+| Тесты | Встроенные `node:test` и `node:assert` |
+
+В `package.json` нет сторонних зависимостей. Рекомендации по правилам и дополнение каталога работают без API-ключа.
+
+## Архитектура проекта
+
+```text
+Браузер: public/ (EN / RU / KZ)
+              ↕ HTTP /api/*
+server.js — сессии, права, предпросмотр импорта, сохранение
+  ├─ lib/domain.js — доступность, ранжирование, прогресс и аналитика HR
+  ├─ lib/dataset.js + dataset-loader.js — адаптация данных и пересчёт
+  ├─ lib/catalog-repair.js — проверка покрытия и дополнительные задания
+  ├─ lib/ai.js — OpenAI / локальная Ollama, резервный режим правил
+  └─ data/state.json — рабочее состояние
 ```
 
-In Windows PowerShell use `npm.cmd start` if script execution is disabled. Open **http://127.0.0.1:3000**.
+В `public/` находятся страницы и стили, общие компоненты (`components.js`), маршруты (`routes.js`) и переводы (`i18n.js`, `language.js`, `catalog.js`). Браузер не обращается к OpenAI напрямую: ключ читает сервер. Рекомендации кешируются по сотруднику, языку и версии данных; сохранение изменений сбрасывает кеш.
 
-| Workspace | Username | Default password |
+## Установка и запуск
+
+Нужны **Node.js 22+** и Git, если репозиторий клонируется.
+
+1. Получите проект и откройте его папку:
+
+   ```sh
+   git clone https://github.com/BAITC-Hacks/hack-c063abd8-team-core.git
+   cd hack-c063abd8-team-core
+   ```
+
+2. Проверьте версию Node.js и запустите сервер:
+
+   ```sh
+   node --version
+   npm start
+   ```
+
+3. Откройте **http://127.0.0.1:3000**. `npm install` и сборка не нужны. Если PowerShell блокирует `npm`, используйте `npm.cmd start`. Остановка сервера — **Ctrl+C**.
+
+| Кабинет | Логин | Пароль по умолчанию |
 | --- | --- | --- |
-| Employee, E0028 (Akmaral Ismailova in the supplied dataset) | `employee` | `grow-together` |
-| HR specialist | `hr` | `support-growth` |
+| Сотрудник, профиль `E0028` | `employee` | `grow-together` |
+| HR | `hr` | `support-growth` |
 
-`EMPLOYEE_ID` can map the demo employee login to another profile. Account labels come from the loaded data. Custom passwords are required when binding outside loopback.
+Существующий `data/state.json` имеет приоритет. Если его нет, сервер загружает `data/source/`, а при отсутствии исходных данных создаёт демодатасет. При запуске недостающие пути каталога дополняются автоматически.
 
-## Supplied dataset
+### Необязательная настройка ИИ
 
-The provided `career_quest_dataset.zip` has been extracted to **data/source/** and loaded into **data/state.json**. The original archive is unchanged. Previous application state is backed up under **data/backups/**. Source records, working state and backups are Git-ignored.
-
-- 200 employees across 8 roles
-- 40 activities, including mandatory processes
-- 60 skills and 32 role/grade requirement profiles
-- 2,743 participation records
-- Snapshot date: **2026-10-01**, used as the application's reference date
-
-On first launch without state, the server loads `data/source/` if available, otherwise generates the original demo dataset. `DATASET_MODE=demo` explicitly chooses generated data when no state exists. Existing state always takes precedence.
-
-To replace the complete dataset again, stop the server, extract the four starter-kit data files into `data/source/`, then run:
-
-```sh
-npm run import:dataset
-npm start
-```
-
-An alternate extracted directory can be supplied: `npm run import:dataset -- /path/to/dataset`. This offline command validates first, backs up existing state, and atomically replaces it. Never run the offline migration against a running server; use the HR import screen for live updates.
-
-The HR screen accepts the original `employees.json`, `events.json`, `skills.json` and `activity_history.csv` files together, as well as combined JSON and individual profile/history uploads. It preserves wrappers, metadata, role profiles and proficiency descriptions. Validate is a dry run; applying checks the dataset revision. Profiles/events/skills merge by ID. History replaces records for employees represented in the uploaded history file. An empty history file leaves existing history unchanged.
-
-The HR export is a normalized application snapshot, including assessment baselines and original fields, and can be reimported without double-counting gains. Additional original-format jury profiles and history work without schema conversion. The fixture `fixtures/jury-profiles.json` is an example compatible with the supplied catalog.
-
-## OpenAI and local AI
-
-The server supports OpenAI, local Ollama, or explicit multi-factor rules. API keys are read only by the server and never returned to the browser or included in source code.
-
-To configure a replacement key locally, copy `.env.example` to `.env`, enter the key in `OPENAI_API_KEY`, and restart:
+Создайте `.env` рядом с `server.js` по образцу [.env.example](.env.example), не перезаписывая существующие настройки. Для явного запуска без внешнего ИИ достаточно `AI_PROVIDER=rules`. Для OpenAI укажите ключ локально:
 
 ```dotenv
 AI_PROVIDER=openai
-OPENAI_API_KEY=your-new-key
+OPENAI_API_KEY=your_key_here
 OPENAI_MODEL=gpt-4.1-mini
 ```
 
-Do not commit `.env` or paste keys into chat. Environment variables take precedence over `.env`. A key supplied only through the server process environment is temporary and must be configured again after that process exits.
-
-OpenAI mode uses the [Responses API with Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs). The default [GPT-4.1 mini](https://developers.openai.com/api/docs/models/gpt-4.1-mini) supports structured output; `OPENAI_MODEL` is configurable. The model chooses 1-3 activities from a validated shortlist. Returned IDs, uniqueness and explanation length are checked again in application code. Model prose is explicitly separated from deterministic evidence and may still contain mistakes.
-
-**Data flow:** OpenAI mode sends role, grade, tenure, career goal, work format, current skills, candidate activities and history-derived evidence to `api.openai.com`. Employee names, employee IDs, manager IDs and raw participation records are excluded. Requests use `store: false`; this is not a claim of zero retention. Use this provider only where the hackathon's data rules permit that processing. No API key is required for local rules.
-
-For local-only inference, run Ollama with an installed local model and configure:
+Для уже установленной локальной модели Ollama:
 
 ```dotenv
 AI_PROVIDER=ollama
-OLLAMA_MODEL=your-installed-model
+OLLAMA_MODEL=your_installed_model
 OLLAMA_URL=http://127.0.0.1:11434
 ```
 
-Ollama URLs are restricted to loopback and redirects are rejected. Use a local model rather than a cloud-backed Ollama model. For rules only, set `AI_PROVIDER=rules`. Without an explicit provider, a configured OpenAI key selects OpenAI, otherwise an Ollama model selects Ollama, otherwise rules are used.
+После изменения `.env` перезапустите сервер. Не публикуйте ключ. `.env`, рабочее состояние и резервные копии исключены из Git. Переменные окружения процесса имеют приоритет над `.env`. Если провайдер не указан, наличие ключа выбирает OpenAI, иначе настроенной модели — Ollama, иначе используются правила. При ошибке ИИ или тайм-ауте восемь секунд интерфейс показывает резервные рекомендации по правилам.
 
-Requests have an eight-second timeout. Missing credentials, errors, quota limits, incomplete output or invalid model selections produce a visible rules fallback, never a false AI success label. Successful recommendations are cached for five minutes per employee and dataset revision; data changes invalidate the cache. Model performance and the 10-second recommendation target must be verified with the selected model and deployment network.
+`HOST` и `PORT` задают адрес сервера; по умолчанию — `127.0.0.1:3000`. Для привязки к сетевому интерфейсу, отличному от loopback, задайте `EMPLOYEE_PASSWORD` и `HR_PASSWORD`. `EMPLOYEE_ID` выбирает профиль сотрудника; `STATE_FILE` и `DATASET_DIR` — пути хранения.
 
-## Dataset semantics and recommendations
+## Как проверить решение: сценарий для жюри
 
-- **Assessment reconciliation:** original `skills` are stored as `assessed_skills`. Completed history records strictly after `last_review_date`, up to the dataset snapshot, are applied in chronological order using each activity's gains and caps. Re-import reconstructs from the assessment baseline, preventing double counting. Same-day review records are treated as already assessed. The source records session/enrollment dates, not exact completion timestamps; reconciliation uses the supplied `date` as the available proxy. Unknown on-time performance is not invented.
-- **Career targets:** explicit `career_goal.target_role/target_grade` takes precedence. Without a goal, the next grade in the current role is used. Lead without a goal has no fabricated next grade. Missing skills have level 0. `role_profiles.required_skills` and `critical_skills` define the actual target, including career changes.
-- **Eligibility:** mandatory activities are excluded from recommendations and the voluntary catalog. The current role and grade must match the activity audience, all prerequisites must be met, and scheduled activities need an upcoming session (or an existing enrollment). Career-change goals do not bypass audience restrictions.
-- **Completion:** completed activities cannot be repeated, except recurring `EV_036` (Public Speaking Club). Each recurring session needs a separate enrollment and cannot be credited twice. In-progress source records appear in My plan; voluntarily leaving them is preserved through later reconciliation.
-- **Ranking:** considers target-gap closure, gap size, critical skill importance, relevant completions and dropouts/no-shows/declines, historical success with the actual online/offline/self-paced format, and effort. Completed non-recurring events are excluded. The model selects from the best eligible candidates and explains tradeoffs. Remote workers are warned when a suggested event is in person.
+1. Запустите проект без API-ключа и войдите как `employee`. Выберите RU, EN или KZ.
+2. Откройте **Мой путь развития**, сравните текущие и целевые уровни навыков.
+3. Нажмите **Почему этот шаг?** в рекомендации. Посмотрите обоснование и ожидаемый прирост. Автоматически добавленная практика имеет отдельную пометку.
+4. Добавьте активность в план, откройте её и отметьте завершение. Проверьте изменение навыка, историю и новые рекомендации. Это изменяет локальное демосостояние.
+5. Выйдите и войдите как `hr`. Посмотрите дефициты команды, покрытие каталога и профиль сотрудника.
+6. В **Управлении данными** выберите [fixtures/jury-profiles.json](fixtures/jury-profiles.json) и нажмите **Проверить файлы**. На исходном датасете добавляются три профиля: 200 → 203. Изучите предпросмотр перед применением; после импорта найдите `JURY01`.
+7. Скачайте **полную резервную копию**: она включает прогресс, ручные записи и отказы. Для восстановления выберите её через ту же форму, выполните проверку и нажмите кнопку восстановления. Это заменяет все текущие данные, после чего каталог проверяется на пробелы. Обычный экспорт датасета личные планы не включает.
 
-The deterministic score is `12 * gap_closure + 4 * gap_weighted_closure + 3 * format_completion_rate + min(relevant_completions, 3) - 5 * relevant_skips - 0.4 * hours`. Gap-weighted closure doubles the weight of critical skills. A new format starts with a neutral completion rate of 0.5.
-
-```text
-new_level = max(current, min(5, activity.max_level, current + activity.gain))
-readiness = round(100 * sum(min(current, target)) / sum(target))
-```
-
-Skills with no target do not increase the readiness denominator. Readiness is a development guide, not a promotion decision. Individual skill gaps and critical requirements remain visible.
-
-## Interface language
-
-Use **EN / RU / KZ** on the sign-in page or in the workspace header to choose English, Russian or Kazakh. The choice is saved in this browser and applies to navigation, forms, dates, HR screens, supplied activity titles/descriptions, skill labels and recommendation evidence. Switching preserves form input and selected import files. AI explanations are requested in the selected language; cached recommendations are separated by language. The KZ button uses the standard Kazakh language code `kk` internally.
-
-Names, IDs, filenames, code and original dataset records are preserved. Unknown text from custom imports stays in its source language. Language selection does not modify an employee's dataset language preference. Technical validation details from unsupported/custom input may remain in English.
-
-Completion is **self-reported for the demo** and immediately updates skill levels, including for a selected future session; it is not proof of real attendance. A production deployment should verify completion through the learning system. The snapshot clock remains fixed for reproducible hackathon evaluation.
-
-## HR, privacy and persistence
-
-HR sees aggregate skill gaps and private, alphabetical employee profiles, never a public employee leaderboard. Support prompts mean repeated no-shows/declines in 90 days or no recent completion, relative to the snapshot. They are not employee performance or attrition predictions. All statuses, including in-progress, dropped and overdue, are retained in the journal.
-
-Employee/HR permissions are enforced by server routes. Employees cannot request another employee's profile; only HR may import/export data or see team analytics. Cookies are HTTP-only and SameSite=Strict with eight-hour sessions. Cross-origin mutations are rejected and login attempts are rate-limited. Sessions end on server restart. State is stored using atomic JSON file replacement in a single server process.
-
-| Variable | Default |
-| --- | --- |
-| `HOST`, `PORT` | `127.0.0.1`, `3000` |
-| `STATE_FILE` | `data/state.json` |
-| `DATASET_DIR` | `data/source` |
-| `EMPLOYEE_ID` | `E0028` |
-| `EMPLOYEE_PASSWORD`, `HR_PASSWORD` | Demo passwords above |
-| `COOKIE_SECURE` | Set `true` behind HTTPS |
-| `AI_PROVIDER` | Automatic selection described above |
-| `OPENAI_API_KEY` | Unset |
-| `OPENAI_MODEL` | `gpt-4.1-mini` |
-| `OLLAMA_MODEL` | Unset |
-| `OLLAMA_URL` | `http://127.0.0.1:11434` |
-
-This remains a hackathon prototype with two demo accounts. Production use needs SSO, a durable database, audit storage, encrypted-at-rest storage, HTTPS and verified learning-system completion. No real personal data should be loaded.
-
-## Verification
+Автоматические проверки:
 
 ```sh
 npm test
 npm run check
 ```
 
-Tests cover permissions, persistence, adversarial ranking, original starter-kit wrappers, role/critical requirements, cross-role goals, prerequisites, scheduled/mandatory/recurring activities, post-review gain reconciliation, idempotent imports, CSV, OpenAI request/response validation and local-model fallback. The full supplied-data regression runs when `data/source/` is available; portable fixtures cover its schema independently. Automated AI tests use mocked responses and do not spend API credits.
+Тесты проверяют права, смену файла во время предпросмотра, дубли завершений, резервные копии, ранжирование, дополнение каталога, локализацию и запросы к ИИ. Ответы ИИ имитируются, API-кредиты не расходуются. [Тест исходного датасета](test/catalog-repair.test.js) проверяет снижение числа сотрудников с дефицитами без рекомендаций **с 30 до 0** после дополнения, без изменения оценок и истории. Это покрытие каталога в тестовых данных, а не измеренный эффект обучения; тест выполняется при наличии исходного набора.
 
-| Path | Responsibility |
-| --- | --- |
-| `server.js` | API, authentication, permissions, persistence, caching |
-| `lib/domain.js` | Eligibility, scoring, growth, HR aggregates, validation |
-| `lib/dataset.js`, `lib/dataset-loader.js` | Starter-kit adapter and assessment reconciliation |
-| `lib/ai.js` | OpenAI / Ollama selection and validated fallback |
-| `scripts/import-dataset.js` | Backed-up offline dataset replacement |
-| `public/` | Responsive web UI |
-| `test/` | Regression tests |
-| `.env.example` | Server configuration template, no credentials |
+## Данные и интеграции
 
-## Backups and navigation
+Синтетический набор в [data/source/](data/source/) содержит **200 сотрудников, 8 ролей, 40 исходных активностей, 60 навыков, 32 профиля требований к роли/грейду и 2743 записи истории**. Опорная дата — **2026-10-01**. В рабочем каталоге дополнительно появляются автоматически созданные задания.
 
-In the HR data workspace, **Download current dataset** exports the data collections for merging; it does not include personal plans. **Download full backup** includes all saved skill levels, manual enrollments and withdrawals. To restore it, choose that JSON file, validate it, review the replacement notice, then select **Restore full backup**. Restoration replaces the entire state without replaying history; sessions and API credentials are not included.
+HR может загрузить вместе `employees.json`, `events.json`, `skills.json` и `activity_history.csv` либо объединённый JSON. Профили, активности и навыки объединяются по ID; история заменяется для сотрудников, представленных в загруженной истории. Предпросмотр привязан к содержимому, сессии и версии данных. Интерфейс принимает файлы общим объёмом до 7 МБ; лимит запроса сервера — 8 МБ.
 
-Repeated completion rows remain in the audit history, but only the earliest completion per employee/event grants skill credit. Recurring events grant credit once per session (`session_date`, falling back to the historical `date`). Import preview reports duplicate completions. Existing saved skill levels are not automatically recalculated.
+Для полной замены датасета вне интерфейса **сначала остановите сервер**:
 
-Screens use links such as `#/activities` and `#/path`; HR previews use `#/preview?employee=E0028`. Refresh and browser Back/Forward retain the screen, and navigation focuses the main content. Shared markup is in `public/components.js`, routing in `public/routes.js`, and navigation translations use stable keys.
+```sh
+npm run import:dataset
+npm start
+```
 
-## Automatic catalog supplementation
+Команда читает `data/source/`, проверяет данные, дополняет каталог, сохраняет прежнее состояние в `data/backups/` и заменяет его. Другую папку можно указать так: `npm run import:dataset -- /path/to/dataset`.
 
-The server checks catalog coverage at startup and after changes, including imports, backup restoration and activity completion. `lib/catalog-repair.js` simulates learning paths without changing employee assessments, history or enrollment. It retains the supplied courses and adds deterministic, clearly marked self-study practice when a path runs out of usable activities (missing skills, completed courses, prerequisite barriers, level caps or unavailable sessions). Later steps require the previous skill level; each completion grants at most one level, capped at that step. Rechecking is idempotent, and existing suitable catalog activities take priority in recommendations.
+В режиме OpenAI сервер передаёт роль, грейд, стаж, карьерную цель, формат работы, навыки и сведения о кандидатах на рекомендацию. Имена, ID сотрудников и руководителей, исходная история не передаются. Используется `store: false`, что не означает гарантии нулевого хранения. Ollama доступна только по локальному адресу. Прямых интеграций с банком, HR-системой или платформой обучения нет.
 
-These are proposed practice tasks with instructions, not verified external courses or scheduled classes. Completion remains self-reported in this demo. No OpenAI key or external service is required. The HR overview shows original and supplemented coverage. Import preview includes newly added practice; a backup restores saved progress and plans, then checks its catalog for missing paths. Generated events are persisted in the application state, not written into `data/source/`.
+## Ограничения
+
+- Прототип хакатона: две демоучётные записи, сессии в памяти, локальное JSON-хранилище. Нет SSO, промышленной БД и координации нескольких экземпляров сервера.
+- Завершение отмечает сам пользователь; навыки меняются сразу, даже для выбранной будущей сессии. Посещаемость и практическая компетентность независимо не подтверждаются.
+- Дополнительная практика строится по шаблонам уровней. Это не проверенные внешние курсы, сертификация или занятия с преподавателем.
+- Готовность — ориентир развития, а не решение о повышении. Сигналы поддержки HR основаны на правилах истории, а не на прогнозе эффективности или увольнения.
+- ИИ может ошибаться; скорость и доступность зависят от провайдера. Расчёты используют дату снимка данных, если она задана.
+- Неизвестные тексты из пользовательского импорта остаются на исходном языке. Текущая версия не заявляется готовой к промышленной эксплуатации.
+
+## Развёрнутая версия
+
+Подтверждённой ссылки на публично развёрнутую версию в репозитории нет. Для проверки используйте локальный адрес **http://127.0.0.1:3000**.
