@@ -9,6 +9,7 @@ const uiLabels = { 'nav.overview': 'Overview', 'nav.path': 'My growth path', 'na
 export const translateKey = (key, language) => Object.hasOwn(uiLabels, key) ? translateText(uiLabels[key], language) : undefined;
 function add(en, ru, kk) { messages[en] = { ru, kk }; }
 const rows = [
+['Validate the selected files again before applying them.','Проверьте выбранные файлы повторно перед применением.','Қолданбас бұрын таңдалған файлдарды қайта тексеріңіз.'],
 ['Download full backup','Скачать полную резервную копию','Толық сақтық көшірмені жүктеп алу'],
 ['Restore full backup','Восстановить полную резервную копию','Толық сақтық көшірмені қалпына келтіру'],
 ['Dataset export excludes personal plans. Use a full backup to restore all data.','Экспорт датасета не включает личные планы. Для восстановления всех данных используйте полную резервную копию.','Деректер экспорты жеке жоспарларды қамтымайды. Барлық деректі қалпына келтіру үшін толық сақтық көшірмені қолданыңыз.'],

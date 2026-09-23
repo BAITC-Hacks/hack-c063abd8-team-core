@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createSeed } from '../lib/seed.js';
-import { mergeImport, parseCsv, eligible, remainingSessions, recommend, exportBackup, restoreBackup } from '../lib/domain.js';
+import { mergeImport, parseCsv, eligible, remainingSessions, recommend, exportBackup, restoreBackup, hrSummary } from '../lib/domain.js';
 
 function fixture() {
   const state = createSeed();
@@ -64,4 +64,27 @@ test('event boolean fields reject strings instead of coercing false to true', ()
   for (const field of ['mandatory', 'voluntary', 'recurring']) {
     assert.throws(() => mergeImport(state, { events: [{ ...state.events[0], [field]: 'false' }] }), /boolean/);
   }
+});
+
+test('duplicate completions cannot change HR metrics, support signals or recommendation scores', () => {
+  const state = fixture();
+  state.history = [completion('done', '2026-09-01', { event_id: 'EV004', on_time: true }), { ...completion('missed', '2026-09-10'), status: 'no_show' }];
+  const summary = hrSummary(state), ranking = recommend(state, state.employees[27]);
+  assert.equal(summary.completion_rate, 50);
+  state.history.push({ ...state.history[0], history_id: 'duplicate', date: '2026-09-30' });
+  assert.deepEqual(hrSummary(state), summary);
+  assert.deepEqual(recommend(state, state.employees[27]), ranking);
+  // A recent duplicate must not turn an old completion into recent participation.
+  state.history[0].date = '2026-01-01';
+  assert.equal(hrSummary(state).completion_rate, 0);
+});
+
+test('analytics count distinct recurring sessions but not repeated records of one session', () => {
+  const state = fixture();
+  state.events[0].recurring = true;
+  state.history = [completion('one', '2026-09-01'), completion('two', '2026-09-02'), { ...completion('missed', '2026-09-03'), status: 'no_show' }];
+  const before = hrSummary(state);
+  assert.equal(before.completion_rate, 67);
+  state.history.push(completion('duplicate', '2026-09-04', { session_date: '2026-09-01' }));
+  assert.deepEqual(hrSummary(state), before);
 });

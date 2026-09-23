@@ -2,7 +2,7 @@ import http from 'node:http';
 import { readFileSync, writeFileSync, mkdirSync, renameSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { randomBytes, timingSafeEqual } from 'node:crypto';
+import { randomBytes, timingSafeEqual, createHash } from 'node:crypto';
 import { createSeed } from './lib/seed.js';
 import { trajectory, recommend, eligible, remainingSessions, skillChanges, completeActivity, hrSummary, mergeImport, parseCsv, validateState, exportBackup, restoreBackup } from './lib/domain.js';
 import { aiRecommendations } from './lib/ai.js';
@@ -19,6 +19,7 @@ const sourceDirectory = process.env.DATASET_DIR || resolve(root, 'data/source');
 let state = existsSync(stateFile) ? validateState(JSON.parse(readFileSync(stateFile, 'utf8'))) : process.env.DATASET_MODE !== 'demo' && existsSync(resolve(sourceDirectory, 'employees.json')) ? loadDatasetDirectory(sourceDirectory) : createSeed();
 state.enrollments ||= [];
 const sessions = new Map(), attempts = new Map();
+const importPreviews = new Map();
 const recommendationCache = new Map();
 let revision = 0;
 const port = Number(process.env.PORT || 3000);
@@ -82,12 +83,15 @@ export const server = http.createServer(async (req, res) => {
     }
     if (route === '/api/config' && req.method === 'GET') return json(res, 200, { employee_name: state.employees.find(e => e.employee_id === accounts.employee.employee_id)?.name || accounts.employee.employee_id, employee_count: state.employees.length, snapshot_date: state.meta?.as_of_date || null, ai: aiConfig() });
     if (route === '/api/login' && req.method === 'POST') {
-      const b = await body(req), key = req.socket.remoteAddress;
+      const b = await body(req);
+      const username = typeof b.username === 'string' && Object.hasOwn(accounts, b.username) ? b.username : null;
+      const key = JSON.stringify([req.socket.remoteAddress, username || 'unknown']);
+      for (const [k, attempt] of attempts) if (attempt.until < Date.now()) attempts.delete(k);
       const attempt = attempts.get(key) || { count: 0, until: Date.now() + 60000 };
       if (attempt.until < Date.now()) { attempt.count = 0; attempt.until = Date.now() + 60000; }
       if (++attempt.count > 20) fail(429, 'Too many attempts. Try again in a minute.');
       attempts.set(key, attempt);
-      const account = Object.hasOwn(accounts, b.username) ? accounts[b.username] : null;
+      const account = username ? accounts[username] : null;
       if (!account || !secureEqual(b.password, account.password)) fail(401, 'Incorrect username or password.');
       attempts.delete(key);
       for (const [token, s] of sessions) if (s.expires < Date.now()) sessions.delete(token);
@@ -100,10 +104,10 @@ export const server = http.createServer(async (req, res) => {
     }
     const session = authenticate(req);
     if (route === '/api/me' && req.method === 'GET') { const { token, expires, ...user } = session; if (user.role === 'employee') user.name = state.employees.find(e => e.employee_id === user.employee_id)?.name || user.employee_id; return json(res, 200, user); }
-    if (route === '/api/logout' && req.method === 'POST') { sessions.delete(session.token); res.setHeader('Set-Cookie', 'cq_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'); return json(res, 200, { ok: true }); }
+    if (route === '/api/logout' && req.method === 'POST') { sessions.delete(session.token); importPreviews.delete(session.token); res.setHeader('Set-Cookie', 'cq_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'); return json(res, 200, { ok: true }); }
     if (route === '/api/profile' && req.method === 'GET') {
       const employee = profile(session, url.searchParams);
-      return json(res, 200, { employee, snapshot_date: state.meta?.as_of_date || null, trajectory: trajectory(state, employee), history: state.history.filter(h => h.employee_id === employee.employee_id).map(h => ({ ...h, title: state.events.find(e => e.event_id === h.event_id)?.title })).sort((a, b) => new Date(b.date) - new Date(a.date)), enrollments: state.enrollments.filter(e => e.employee_id === employee.employee_id) });
+      return json(res, 200, { employee, completion_count: uniqueCompletions(state).filter(h => h.employee_id === employee.employee_id).length, snapshot_date: state.meta?.as_of_date || null, trajectory: trajectory(state, employee), history: state.history.filter(h => h.employee_id === employee.employee_id).map(h => ({ ...h, title: state.events.find(e => e.event_id === h.event_id)?.title })).sort((a, b) => new Date(b.date) - new Date(a.date)), enrollments: state.enrollments.filter(e => e.employee_id === employee.employee_id) });
     }
     if (route === '/api/recommendations' && req.method === 'GET') {
       const employee = profile(session, url.searchParams); const before = revision;
@@ -151,6 +155,11 @@ export const server = http.createServer(async (req, res) => {
       if (route === '/api/hr/export' && req.method === 'GET') return json(res, 200, { meta: state.meta, role_profiles: state.role_profiles, proficiency_scale: state.proficiency_scale, employees: state.employees, events: state.events, skills: state.skills, history: state.history });
       if (route === '/api/hr/import' && req.method === 'POST') {
         const b = await body(req);
+        const digest = createHash('sha256').update(JSON.stringify({ dataset: b.dataset, files: b.files })).digest('hex');
+        if (!b.preview) {
+          const preview = importPreviews.get(session.token);
+          if (!preview || preview.digest !== digest || preview.revision !== revision || preview.expires < Date.now() || b.revision !== revision) fail(409, 'Validate the selected files again before applying them.');
+        }
         let payload = b.dataset;
         if (b.files) {
           if (!Array.isArray(b.files)) fail(400, 'Files must be an array.');
@@ -159,9 +168,13 @@ export const server = http.createServer(async (req, res) => {
         const restoring = payload?.kind === 'career-quest-backup';
         const candidate = restoring ? restoreBackup(payload) : mergeImport(state, payload);
         const counts = Object.fromEntries(['employees', 'events', 'skills', 'history'].map(k => [k, candidate[k].length]));
-        if (b.preview) return json(res, 200, { counts, restoring, duplicate_completions: candidate.history.filter(h => h.status === 'completed').length - uniqueCompletions(candidate).length, message: 'Validated. Ready to import.', revision });
+        if (b.preview) {
+          for (const [token, preview] of importPreviews) if (preview.expires < Date.now()) importPreviews.delete(token);
+          importPreviews.set(session.token, { digest, revision, expires: Date.now() + 10 * 60000 });
+          return json(res, 200, { counts, restoring, duplicate_completions: candidate.history.filter(h => h.status === 'completed').length - uniqueCompletions(candidate).length, message: 'Validated. Ready to import.', revision });
+        }
         if (b.revision !== revision) fail(409, 'Data changed since validation. Validate your files again.');
-        save(candidate); return json(res, 200, { counts, message: 'Dataset imported successfully.' });
+        save(candidate); importPreviews.delete(session.token); return json(res, 200, { counts, message: 'Dataset imported successfully.' });
       }
     }
     fail(404, 'API endpoint not found.');

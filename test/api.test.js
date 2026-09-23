@@ -56,7 +56,7 @@ test('API enforces permissions, validates imports and persists completion', asyn
     const hrLogin = await request('/api/login', '', { username: 'hr', password: 'support-growth' });
     const hr = hrLogin.headers.get('set-cookie').split(';')[0];
     // JSON parse errors can include uploaded text; even these must redact secrets.
-    const malformed = await request('/api/hr/import', hr, { files: [{ name: 'employees.json', text: secret }] });
+    const malformed = await request('/api/hr/import', hr, { files: [{ name: 'employees.json', text: secret }], preview: true });
     assert.equal(malformed.status, 400);
     assert.equal((await request('/api/hr/summary', hr)).data.total, 200);
     assert.equal((await request('/api/complete', hr, { event_id: 'EV001' })).status, 403);
@@ -105,6 +105,19 @@ test('API enforces permissions, validates imports and persists completion', asyn
     assert.ok(backup.state.withdrawn_enrollments.includes('E0028:EV004'));
     assert.equal((await importDataset(backup)).restoring, true);
     assert.deepEqual((await request('/api/hr/backup', hr)).data, backup);
+    const safeDataset = { employees: [backup.state.employees[27]] };
+    const safePreview = await request('/api/hr/import', hr, { dataset: safeDataset, preview: true });
+    assert.equal((await request('/api/hr/import', hr, { dataset: backup, revision: safePreview.data.revision })).status, 409);
+    assert.equal((await request('/api/hr/import', hr, { dataset: safeDataset, revision: safePreview.data.revision })).status, 200);
+    // A preview belongs to the session that requested it.
+    const otherHr = (await request('/api/login', '', { username: 'hr', password: 'support-growth' })).headers.get('set-cookie').split(';')[0];
+    const previewForHr = await request('/api/hr/import', hr, { dataset: safeDataset, preview: true });
+    assert.equal((await request('/api/hr/import', otherHr, { dataset: safeDataset, revision: previewForHr.data.revision })).status, 409);
+    for (let i = 0; i < 20; i++) {
+      assert.equal((await request('/api/login', '', { username: 'hr', password: 'wrong' })).status, 401);
+      assert.equal((await request('/api/login', '', { username: 'employee', password: 'grow-together' })).status, 200);
+    }
+    assert.equal((await request('/api/login', '', { username: 'hr', password: 'wrong' })).status, 429);
     for (const path of ['/routes.js', '/components.js']) assert.equal((await fetch(base + path)).status, 200);
     await request('/api/logout', employee, {});
     assert.equal((await request('/api/profile', employee)).status, 401);
