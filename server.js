@@ -10,6 +10,7 @@ import { aiConfig } from './lib/ai.js';
 import { asOf, datasetFromFiles } from './lib/dataset.js';
 import { loadDatasetDirectory } from './lib/dataset-loader.js';
 import { normalizeLanguage } from './public/i18n.js';
+import { redactSecrets } from './lib/secrets.js';
 
 const root = dirname(fileURLToPath(import.meta.url));
 if (process.env.LOAD_ENV_FILE !== 'false' && existsSync(resolve(root, '.env'))) process.loadEnvFile(resolve(root, '.env'));
@@ -34,7 +35,7 @@ function save(next) {
   state = next; revision++; recommendationCache.clear();
 }
 if (!existsSync(stateFile)) save(state);
-function json(res, status, data) { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(data)); }
+function json(res, status, data) { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(redactSecrets(JSON.stringify(data))); }
 function fail(status, message) { const err = new Error(message); err.status = status; throw err; }
 async function body(req) {
   let chunks = [], length = 0;
@@ -63,7 +64,13 @@ export const server = http.createServer(async (req, res) => {
   res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
   try {
     const url = new URL(req.url, 'http://localhost'); const route = url.pathname;
-    if (req.method === 'GET' && assets[route]) { const [file, type] = assets[route]; res.writeHead(200, { 'Content-Type': `${type}; charset=utf-8` }); return res.end(readFileSync(resolve(root, 'public', file))); }
+    if (req.method === 'GET' && Object.hasOwn(assets, route)) {
+      const [file, type] = assets[route];
+      const content = readFileSync(resolve(root, 'public', file), 'utf8');
+      if (redactSecrets(content) !== content) fail(500, 'Asset unavailable.');
+      res.writeHead(200, { 'Content-Type': `${type}; charset=utf-8` });
+      return res.end(content);
+    }
     if (!route.startsWith('/api/')) fail(404, 'Not found.');
     if (!['GET', 'POST'].includes(req.method)) fail(405, 'Method not allowed.');
     if (req.method === 'POST') {

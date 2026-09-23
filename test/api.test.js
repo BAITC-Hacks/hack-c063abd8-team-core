@@ -8,7 +8,8 @@ import { join, resolve, dirname, basename } from 'node:path';
 test('API enforces permissions, validates imports and persists completion', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'career-quest-test-'));
   const statePath = join(directory, 'state.json');
-  const child = spawn(process.execPath, ['server.js'], { env: { ...process.env, PORT: '0', HOST: '127.0.0.1', STATE_FILE: statePath, DATASET_MODE: 'demo', LOAD_ENV_FILE: 'false', AI_PROVIDER: 'rules', OLLAMA_MODEL: '', EMPLOYEE_PASSWORD: 'grow-together', HR_PASSWORD: 'support-growth' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  const secret = 'sk-proj-' + 'private-test-sentinel'.repeat(3);
+  const child = spawn(process.execPath, ['server.js'], { env: { ...process.env, OPENAI_API_KEY: secret, PORT: '0', HOST: '127.0.0.1', STATE_FILE: statePath, DATASET_MODE: 'demo', LOAD_ENV_FILE: 'false', AI_PROVIDER: 'rules', OLLAMA_MODEL: '', EMPLOYEE_PASSWORD: 'grow-together', HR_PASSWORD: 'support-growth' }, stdio: ['ignore', 'pipe', 'pipe'] });
   try {
     const base = await new Promise((resolve, reject) => {
       const timer = setTimeout(() => reject(new Error('Server startup timed out')), 10000);
@@ -19,8 +20,19 @@ test('API enforces permissions, validates imports and persists completion', asyn
     });
     async function request(path, cookie = '', payload, extra = {}) {
       const r = await fetch(base + path, { method: payload === undefined ? 'GET' : 'POST', headers: { Cookie: cookie, 'Content-Type': 'application/json', ...extra }, body: payload === undefined ? undefined : JSON.stringify(payload) });
-      return { status: r.status, headers: r.headers, data: await r.json() };
+      const text = await r.text();
+      assert.ok(!text.includes(secret), 'API must never disclose the server key');
+      return { status: r.status, headers: r.headers, data: JSON.parse(text) };
     }
+    for (const path of ['/.env', '/.env.example', '/server.js', '/lib/ai.js', '/lib/secrets.js', '/.git/config', '/data/state.json', '/%2e%2e/.env', '/public/../.env', '/app.js.map']) {
+      assert.equal((await request(path)).status, 404, path);
+    }
+    for (const path of ['/', '/app.js', '/i18n.js', '/language.js', '/catalog.js', '/styles.css', '/favicon.svg']) {
+      const response = await fetch(base + path);
+      assert.equal(response.status, 200);
+      assert.ok(!(await response.text()).includes(secret));
+    }
+    assert.equal((await request('/api/config')).status, 200);
     assert.equal((await request('/api/profile')).status, 401);
     assert.equal((await request('/api/login', '', { username: 'hr', password: 'wrong' })).status, 401);
     const employeeLogin = await request('/api/login', '', { username: 'employee', password: 'grow-together' });
@@ -43,6 +55,9 @@ test('API enforces permissions, validates imports and persists completion', asyn
     assert.equal(disk.employees[27].skills.SK_SYSTEM_DESIGN, 3);
     const hrLogin = await request('/api/login', '', { username: 'hr', password: 'support-growth' });
     const hr = hrLogin.headers.get('set-cookie').split(';')[0];
+    // JSON parse errors can include uploaded text; even these must redact secrets.
+    const malformed = await request('/api/hr/import', hr, { files: [{ name: 'employees.json', text: secret }] });
+    assert.equal(malformed.status, 400);
     assert.equal((await request('/api/hr/summary', hr)).data.total, 200);
     assert.equal((await request('/api/complete', hr, { event_id: 'EV001' })).status, 403);
     const dataset = { employees: [{ ...disk.employees[27], employee_id: 'JURY_NEW', name: 'Jury test' }] };
