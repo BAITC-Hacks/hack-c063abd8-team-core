@@ -162,6 +162,6 @@ export const server = http.createServer(async (req, res) => {
       }
     }
     fail(404, 'API endpoint not found.');
-  } catch (error) { json(res, error.status || (error instanceof SyntaxError ? 400 : 400), { error: error.message || 'Request failed.' }); }
+  } catch (error) { json(res, error.status || 400, { error: error instanceof SyntaxError ? 'Invalid JSON file. Check its syntax and try again.' : error.message || 'Request failed.' }); }
 });
 server.listen(port, host, () => console.log(`Career Quest is running at http://${host}:${server.address().port}\nDataset: ${state.employees.length} profiles, ${state.events.length} events, ${state.history.length} history records${state.meta?.as_of_date ? ` (snapshot ${state.meta.as_of_date})` : ''}\nRecommendation provider: ${aiConfig().provider} (${aiConfig().configured ? 'configured' : 'configuration needed'})`));

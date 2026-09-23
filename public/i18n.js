@@ -6,13 +6,47 @@ export const locales = { en: 'en-GB', ru: 'ru-RU', kk: 'kk-KZ' };
 export const messages = {};
 function add(en, ru, kk) { messages[en] = { ru, kk }; }
 const rows = [
+['HR workspace','Кабинет HR','HR кабинеті'],
+['your current grade','вашего текущего грейда','қазіргі грейдіңіз'],
+['live','текущие данные','ағымдағы деректер'],
+['Invalid JSON file. Check its syntax and try again.','Некорректный JSON. Проверьте синтаксис файла и повторите попытку.','JSON файлы қате. Файлдың синтаксисін тексеріп, қайталап көріңіз.'],
+['Dataset must be an object.','Данные должны быть объектом.','Деректер объект түрінде болуы керек.'],
+['Dataset files have different snapshot dates.','Даты среза в файлах различаются.','Файлдардағы деректердің күндері сәйкес келмейді.'],
+['Invalid employee row.','Некорректная запись сотрудника.','Қызметкер туралы жазба қате.'],
+['Invalid event row.','Некорректная запись активности.','Іс-шара туралы жазба қате.'],
+['Invalid history row.','Некорректная запись истории.','Қатысу тарихындағы жазба қате.'],
+['Choose one to four dataset files.','Выберите от одного до четырёх файлов данных.','Бірден төртке дейін деректер файлын таңдаңыз.'],
+['CSV contains an unclosed quoted field.','В CSV не закрыты кавычки поля.','CSV өрісіндегі тырнақша жабылмаған.'],
+['CSV is empty.','CSV пуст.','CSV файлы бос.'],
+['CSV has duplicate column names.','В CSV повторяются названия столбцов.','CSV файлындағы баған атаулары қайталанады.'],
+['Invalid snapshot date.','Некорректная дата среза.','Деректердің күні қате көрсетілген.'],
+['Invalid role profile.','Некорректный профиль роли.','Рөл профилі қате.'],
+['Duplicate role/grade profile.','Повторяется профиль роли и грейда.','Рөл мен грейд профилі қайталанады.'],
+['Role profile has an unknown skill or invalid level.','В профиле роли неизвестный навык или неверный уровень.','Рөл профилінде белгісіз дағды немесе қате деңгей бар.'],
+['Critical skills must have a requirement.','Для критических навыков нужны требования.','Маңызды дағдыларға қойылатын талаптар көрсетілуі керек.'],
+['History contains an unknown employee/event, invalid date, status, or on_time value.','В истории неизвестный сотрудник/активность либо неверные дата, статус или on_time.','Қатысу тарихында белгісіз қызметкер немесе іс-шара бар, не күн, мәртебе немесе on_time мәні қате.'],
+['Duplicate history record ID.','Повторяется ID записи истории.','Қатысу тарихындағы жазбаның ID мәні қайталанады.'],
+['History on_time must be true, false or unknown.','Значение on_time должно быть true, false или неизвестным.','Қатысу тарихындағы on_time мәні true, false немесе белгісіз болуы керек.'],
+['No recognized dataset collections were provided.','Не найдено поддерживаемых разделов данных.','Қолдау көрсетілетін деректер бөлімдері табылмады.'],
+['Upload a dataset object or choose an individual file type.','Загрузите объект данных или выберите отдельный тип файла.','Деректер объектісін жүктеңіз немесе жеке файл түрін таңдаңыз.'],
+['Upload limit is 8 MB.','Лимит загрузки — 8 МБ.','Жүктеу шегі — 8 МБ.'],
+['Files must be an array.','Файлы должны быть массивом.','Файлдар массив түрінде берілуі керек.'],
+['Request must contain valid JSON.','Запрос должен содержать корректный JSON.','Сұрауда дұрыс JSON болуы керек.'],
+['Activity actions are available only in your own employee account.','Действия с активностями доступны только в собственном аккаунте сотрудника.','Іс-шараларға қатысты әрекеттерді тек өз қызметкер аккаунтыңызда орындауға болады.'],
+['Not found.','Не найдено.','Табылмады.'],
+['API endpoint not found.','Адрес API не найден.','API мекенжайы табылмады.'],
+['Method not allowed.','Метод не разрешён.','Бұл әдіске рұқсат жоқ.'],
+['Use application/json.','Используйте application/json.','application/json пішімін қолданыңыз.'],
+['Invalid origin.','Некорректный источник запроса.','Сұрау көзі қате.'],
+['Cross-origin requests are not allowed.','Запросы с другого сайта запрещены.','Басқа сайттан жіберілген сұрауларға рұқсат жоқ.'],
+['Asset unavailable.','Файл недоступен.','Файл қолжетімсіз.'],
 ['Language','Язык','Тіл'],
-['GROW WITH HALYK','РАСТИ ВМЕСТЕ С HALYK','HALYK-ПЕН БІРГЕ ӨС'],
+['GROW WITH HALYK','РАСТИ ВМЕСТЕ С HALYK','HALYK-ПЕН БІРГЕ ӨСІҢІЗ'],
 ['YOUR POTENTIAL. YOUR PACE.','ВАШ ПОТЕНЦИАЛ. ВАШ ТЕМП.','СІЗДІҢ ӘЛЕУЕТІҢІЗ. ӨЗ ҚАРҚЫНЫҢЫЗ.'],
 ['Good things','Всё лучшее','Жақсылықтың бәрі'],['are ahead.','впереди.','алда.'],
-['Turn your next step into a bigger picture.','Посмотрите на свой следующий шаг шире.','Келесі қадамыңыздың мәнін көріңіз.'],
-['A little clarity for your career journey.','Больше ясности на карьерном пути.','Мансап жолыңызға айқындық қосыңыз.'],
-['Discover','Открывай','Таны'],['Develop','Развивайся','Дамы'],['Thrive','Достигай','Өркенде'],
+['Turn your next step into a bigger picture.','Посмотрите на свой следующий шаг шире.','Келесі қадамыңызбен жаңа мүмкіндіктерге жол ашыңыз.'],
+['A little clarity for your career journey.','Больше ясности на карьерном пути.','Мансап жолыңызды айқындаңыз.'],
+['Discover','Открывай','Таныңыз'],['Develop','Развивайся','Дамыңыз'],['Thrive','Достигай','Өркендеңіз'],
 ['Made for your growth. Built around you.','Создано для вашего развития. С заботой о вас.','Сіздің дамуыңыз үшін. Сізге бейімделген.'],
 ['HackAlem AI · Halyk track','HackAlem AI · Трек Halyk','HackAlem AI · Halyk бағыты'],
 ['Your next chapter','Новый этап','Жаңа кезеңіңіз'],['starts here.','начинается здесь.','осы жерден басталады.'],
@@ -26,33 +60,33 @@ const rows = [
 ['Main navigation','Основная навигация','Негізгі навигация'],['Team overview','Обзор команды','Топқа шолу'],
 ['Data workspace','Управление данными','Деректерді басқару'],['Overview','Обзор','Шолу'],['My growth path','Мой путь развития','Даму жолым'],
 ['Explore activities','Каталог активностей','Іс-шаралар каталогы'],['My journey','Моя история','Менің тарихым'],['Profile preview','Просмотр профиля','Профильді қарау'],
-['Small steps.','Маленькие шаги.','Шағын қадамдар.'],['Meaningful growth.','Значимый рост.','Мағыналы даму.'],
-['Your journey is your own.','У каждого свой путь.','Әркімнің өз жолы бар.'],['Let’s make it a good one.','Пусть он будет интересным.','Жолымыз мәнді болсын.'],
-['Employee workspace','Кабинет сотрудника','Қызметкер кабинеті'],['Sign out','Выйти','Шығу'],['HR access','Доступ HR','HR қолжетімділігі'],
+['Small steps.','Маленькие шаги.','Шағын қадамдар.'],['Meaningful growth.','Значимый рост.','Нәтижелі даму.'],
+['Your journey is your own.','У каждого свой путь.','Әркімнің өз жолы бар.'],['Let’s make it a good one.','Пусть он будет интересным.','Жолыңыз жемісті болсын.'],
+['Employee workspace','Кабинет сотрудника','Қызметкер кабинеті'],['Sign out','Выйти','Шығу'],['HR access','Доступ HR','HR маманының рұқсаты'],
 ['Only visible to you & HR','Видно только вам и HR','Тек сізге және HR-ға көрінеді'],
 ['A little progress, every day.','Каждый день — немного вперёд.','Күн сайын бір қадам алға.'],
 ['Finding your next step…','Подбираем следующий шаг…','Келесі қадамыңызды іздеудеміз…'],
 ['Loading your next chapter…','Загружаем ваш новый этап…','Жаңа кезеңіңіз жүктелуде…'],
-['Try again','Попробовать снова','Қайта көру'],['We couldn’t load this workspace.','Не удалось загрузить рабочее пространство.','Жұмыс кеңістігін жүктеу мүмкін болмады.'],
+['Try again','Попробовать снова','Қайталап көру'],['We couldn’t load this workspace.','Не удалось загрузить рабочее пространство.','Жұмыс кеңістігін жүктеу мүмкін болмады.'],
 ['YOUR NEXT CHAPTER','ВАШ НОВЫЙ ЭТАП','СІЗДІҢ ЖАҢА КЕЗЕҢІҢІЗ'],
 ['Your ambitions, a clearer path. Here’s where you can grow next.','Ваши цели и понятный путь к ним. Вот направления дальнейшего роста.','Мақсатыңызға апарар айқын жол. Келесі даму бағыттары осында.'],
-['HR preview · Read-only employee view.','Просмотр HR · Профиль сотрудника без редактирования.','HR көрінісі · Қызметкер профилі тек оқу үшін.'],
-['Back to team overview','Вернуться к команде','Топ шолуына оралу'],['YOUR GROWTH PATH','ВАШ ПУТЬ РАЗВИТИЯ','СІЗДІҢ ДАМУ ЖОЛЫҢЫЗ'],
+['HR preview · Read-only employee view.','Просмотр HR · Профиль сотрудника без редактирования.','HR үшін · Қызметкер профилін тек қарауға болады.'],
+['Back to team overview','Вернуться к команде','Топқа шолуға оралу'],['YOUR GROWTH PATH','ВАШ ПУТЬ РАЗВИТИЯ','СІЗДІҢ ДАМУ ЖОЛЫҢЫЗ'],
 ['You’re building your','Вы создаёте свой','Сіз өзіңіздің'],['next chapter.','новый этап.','жаңа кезеңіңізді құрудасыз.'],
-['Keep growing.','Продолжайте расти.','Дамуды жалғастырыңыз.'],['Keep exploring.','Открывайте новое.','Жаңалықты таныңыз.'],
+['Keep growing.','Продолжайте расти.','Дамуды жалғастырыңыз.'],['Keep exploring.','Открывайте новое.','Жаңаны танып-біліңіз.'],
 ['One meaningful step at a time.','Один важный шаг за другим.','Әр қадамның өз мәні бар.'],
 ['You’re at the highest defined grade. Explore skills beyond your current role.','Вы достигли высшего грейда в этой модели. Изучайте навыки за пределами текущей роли.','Бұл үлгідегі ең жоғары грейдке жеттіңіз. Қазіргі рөліңізден тыс дағдыларды зерттеңіз.'],
-['See my growth path','Посмотреть мой путь','Даму жолымды көру'],['EXPLORE','ИЗУЧАЙ','ТАНЫ'],['DEVELOP','РАЗВИВАЙСЯ','ДАМЫ'],['THRIVE','ДОСТИГАЙ','ӨРКЕНДЕ'],
+['See my growth path','Посмотреть мой путь','Даму жолымды көру'],['EXPLORE','ИЗУЧАЙ','ТАНЫҢЫЗ'],['DEVELOP','РАЗВИВАЙСЯ','ДАМЫҢЫЗ'],['THRIVE','ДОСТИГАЙ','ӨРКЕНДЕҢІЗ'],
 ['Built around your skills, experience & ambitions','С учётом ваших навыков, опыта и целей','Дағдыларыңызға, тәжірибеңізге және мақсатыңызға сай'],
 ['Your next level','Ваш следующий уровень','Келесі деңгейіңіз'],['Top grade','Высший грейд','Ең жоғары грейд'],['skill readiness','готовность по навыкам','дағдылар бойынша дайындық'],
 ['to develop for your next grade','нужно развить для следующего грейда','келесі грейд үшін дамыту қажет'],
 ['Your defined skill targets are met','Целевые уровни навыков достигнуты','Мақсатты дағды деңгейлеріне жеттіңіз'],
 ['No next-grade target defined','Цель следующего грейда не задана','Келесі грейд мақсаты белгіленбеген'],
-['A guide for growth, not a promotion decision.','Ориентир развития, а не решение о повышении.','Даму бағдары, қызметті жоғарылату шешімі емес.'],
+['A guide for growth, not a promotion decision.','Ориентир развития, а не решение о повышении.','Даму бағдары, қызметте жоғарылату туралы шешім емес.'],
 ['Activities completed','Завершено активностей','Аяқталған іс-шаралар'],['Your experience so far','Ваш накопленный опыт','Жинақталған тәжірибеңіз'],
 ['Steps in progress','Шагов в процессе','Орындалып жатқан қадамдар'],['At your own pace','В своём темпе','Өз қарқыныңызбен'],
 ['Skills in your toolkit','Навыков в профиле','Профильдегі дағдылар'],['Room to keep growing','Возможности для роста','Даму мүмкіндіктері'],
-['Good next steps','Подходящие шаги','Лайықты келесі қадамдар'],['Chosen for where you are — and where you want to go.','С учётом вашего опыта и направления развития.','Тәжірибеңіз бен даму бағытыңызға сай таңдалған.'],
+['Good next steps','Подходящие шаги','Сізге ұсынылатын қадамдар'],['Chosen for where you are — and where you want to go.','С учётом вашего опыта и направления развития.','Тәжірибеңіз бен даму бағытыңызға сай таңдалған.'],
 ['Explore all activities','Все активности','Барлық іс-шаралар'],['Considering your skill gaps, history and activity formats…','Учитываем навыки, историю и форматы активностей…','Дағдыларды, тарихты және іс-шара форматтарын ескерудеміз…'],
 ['Skills to take you further','Навыки для следующего шага','Келесі қадамға қажет дағдылар'],['View path','Посмотреть путь','Жолды көру'],
 ['A MOMENT TO REFLECT','ВРЕМЯ ОГЛЯНУТЬСЯ','ОЙ ЕЛЕГІНЕН ӨТКІЗУ'],['Progress isn’t','Путь развития','Даму жолы'],['always a straight line.','не всегда прямой.','әрдайым түзу болмайды.'],
@@ -78,41 +112,41 @@ const rows = [
 ['A clearer view of the skills that connect today to your next chapter.','Узнайте, какие навыки приближают вас к новому этапу.','Жаңа кезеңге жақындататын дағдыларды біліңіз.'],
 ['WHERE YOU ARE','ГДЕ ВЫ СЕЙЧАС','ҚАЗІРГІ ДЕҢГЕЙІҢІЗ'],['WHAT YOU’RE WORKING TOWARD','К ЧЕМУ ВЫ СТРЕМИТЕСЬ','СІЗ ҰМТЫЛАТЫН МАҚСАТ'],
 ['Continued mastery','Дальнейшее мастерство','Шеберлікті жетілдіру'],['No target requirements defined','Целевые требования не заданы','Мақсатты талаптар белгіленбеген'],
-['Your skill map','Карта ваших навыков','Дағдылар картаңыз'],['Current','Текущий','Ағымдағы'],['Target','Цель','Мақсат'],['Progress you can understand','Понятный прогресс','Түсінікті ілгерілеу'],
-['Readiness = the sum of current levels, capped at each target, divided by the sum of target levels. Only skills tracked in your profile or explicitly required for your role are included. Readiness is a development guide, not an automatic promotion decision.','Готовность — сумма текущих уровней, ограниченных целевыми, делённая на сумму целевых уровней. Учитываются навыки профиля и требования к целевой роли. Это ориентир развития, а не автоматическое решение о повышении.','Дайындық — мақсатты деңгеймен шектелген ағымдағы деңгейлер қосындысының мақсатты деңгейлер қосындысына қатынасы. Профильдегі және мақсатты рөлге қажет дағдылар ескеріледі. Бұл — даму бағдары, автоматты жоғарылату шешімі емес.'],
+['Your skill map','Карта ваших навыков','Дағдыларыңыздың картасы'],['Current','Текущий','Ағымдағы'],['Target','Цель','Мақсат'],['Progress you can understand','Понятный прогресс','Түсінікті ілгерілеу'],
+['Readiness = the sum of current levels, capped at each target, divided by the sum of target levels. Only skills tracked in your profile or explicitly required for your role are included. Readiness is a development guide, not an automatic promotion decision.','Готовность — сумма текущих уровней, ограниченных целевыми, делённая на сумму целевых уровней. Учитываются навыки профиля и требования к целевой роли. Это ориентир развития, а не автоматическое решение о повышении.','Дайындық — мақсатты деңгеймен шектелген ағымдағы деңгейлер қосындысының мақсатты деңгейлер қосындысына қатынасы. Профильдегі және мақсатты рөлге қажет дағдылар ескеріледі. Бұл — даму бағдары, қызметте автоматты түрде жоғарылату туралы шешім емес.'],
 ['Your next step is yours to choose.','Следующий шаг выбираете вы.','Келесі қадамды өзіңіз таңдайсыз.'],
-['Browse voluntary opportunities that fit your goals and your schedule.','Найдите добровольные активности под свои цели и график.','Мақсатыңыз бен кестеңізге сай ерікті іс-шараларды табыңыз.'],
+['Browse voluntary opportunities that fit your goals and your schedule.','Найдите добровольные активности под свои цели и график.','Мақсатыңыз бен кестеңізге сай, өз еркіңізбен қатысатын іс-шараларды табыңыз.'],
 ['MAKE ROOM TO GROW','ПРОСТРАНСТВО ДЛЯ РОСТА','ДАМУҒА ОРЫН БЕРІҢІЗ'],['Find your next spark.','Найдите новый источник вдохновения.','Жаңа шабыт көзін табыңыз.'],
 ['Workshops, mentoring and practical experiences. Choose what works for you.','Практикумы, наставничество и новый опыт. Выбирайте подходящее.','Практикумдар, тәлімгерлік және жаңа тәжірибе. Өзіңізге сай нұсқаны таңдаңыз.'],
 ['All activities','Все активности','Барлық іс-шаралар'],['My plan','Мой план','Менің жоспарым'],['Search activities','Поиск активностей','Іс-шараларды іздеу'],
 ['No matching activities. Try another filter or add an activity to your plan.','Подходящих активностей нет. Измените фильтр или добавьте активность в план.','Сәйкес іс-шаралар жоқ. Сүзгіні өзгертіңіз немесе жоспарға іс-шара қосыңыз.'],
-['EVERY STEP TELLS A STORY','У КАЖДОГО ШАГА СВОЯ ИСТОРИЯ','ӘР ҚАДАМНЫҢ ӨЗ ТАРИХЫ БАР'],['Look how far you’ve come.','Посмотрите, какой путь вы прошли.','Қанша жол жүргеніңізді көріңіз.'],
+['EVERY STEP TELLS A STORY','У КАЖДОГО ШАГА СВОЯ ИСТОРИЯ','ӘР ҚАДАМНЫҢ ӨЗ ТАРИХЫ БАР'],['Look how far you’ve come.','Посмотрите, какой путь вы прошли.','Қандай жетістіктерге жеткеніңізді көріңіз.'],
 ['Your development history, without comparisons or leaderboards.','Ваша история развития без сравнений и рейтингов.','Салыстырусыз және рейтингсіз даму тарихыңыз.'],
 ['Did not attend','Не участвовал(а)','Қатыспады'],['Chose not to attend','Отказ от участия','Қатысудан бас тартты'],['Registered','Запись оформлена','Тіркелді'],
-['Left before completing','Участие прервано','Қатысу тоқтатылды'],['Overdue','Просрочено','Мерзімі өтті'],['· On time','· Вовремя','· Уақытында'],
+['Left before completing','Участие прервано','Аяқтамай тоқтатты'],['Overdue','Просрочено','Мерзімі өтті'],['· On time','· Вовремя','· Уақытында'],
 ['Your story starts with your first activity.','Ваша история начинается с первой активности.','Тарихыңыз алғашқы іс-шарадан басталады.'],
 ['HELP YOUR PEOPLE THRIVE','ПОМОГАЙТЕ КОМАНДЕ РАСТИ','ТОПТЫҢ ДАМУЫНА КӨМЕКТЕСІҢІЗ'],['Growth starts with understanding.','Развитие начинается с понимания.','Даму түсінуден басталады.'],
 ['See where support can make a difference. Give every journey room to grow.','Узнайте, где нужна поддержка. Дайте каждому возможность расти.','Қай жерде қолдау қажет екенін біліңіз. Әркімге дамуға мүмкіндік беріңіз.'],
 ['Import dataset','Импорт данных','Деректерді импорттау'],['People in your workspace','Сотрудников в системе','Жүйедегі қызметкерлер'],['Synthetic employee profiles','Синтетические профили','Синтетикалық профильдер'],
-['Active in development','Участвуют в развитии','Дамуға қатысуда'],['Completed an activity in 90 days','Завершили активность за 90 дней','90 күнде іс-шараны аяқтады'],
+['Active in development','Участвуют в развитии','Дамуға қатысуда'],['Completed an activity in 90 days','Завершили активность за 90 дней','Соңғы 90 күнде іс-шара аяқтағандар'],
 ['Activity completion','Завершение активностей','Іс-шараларды аяқтау'],['Across records in the last 90 days','По записям за последние 90 дней','Соңғы 90 күндегі жазбалар бойынша'],
-['May benefit from support','Может пригодиться поддержка','Қолдау қажет болуы мүмкін'],['A conversation, not a risk label','Повод для разговора, не оценка риска','Әңгімеге себеп, тәуекел бағасы емес'],
+['May benefit from support','Может пригодиться поддержка','Қолдау қажет болуы мүмкін'],['A conversation, not a risk label','Повод для разговора, не оценка риска','Әңгімелесуге негіз, тәуекел бағасы емес'],
 ['Where to invest in growth','Куда направить поддержку','Қолдауды қайда бағыттау керек'],
 ['Skills below next-grade requirements across applicable profiles.','Навыки ниже требований целевого грейда в соответствующих профилях.','Тиісті профильдердегі мақсатты грейд талабына жетпейтін дағдылар.'],
 ['Team skill gaps','Дефициты навыков команды','Топ дағдыларындағы алшақтық'],['People & their paths','Люди и их пути','Адамдар және олардың жолдары'],
-['Alphabetical view · visible only to HR','По алфавиту · видно только HR','Әліпби ретімен · тек HR-ға көрінеді'],['Find a colleague','Найти сотрудника','Қызметкерді іздеу'],
+['Alphabetical view · visible only to HR','По алфавиту · видно только HR','Әліпбилік ретпен · тек HR-ға көрінеді'],['Find a colleague','Найти сотрудника','Қызметкерді іздеу'],
 ['Everyone','Все','Барлығы'],['May need support','Нужна поддержка','Қолдау қажет'],['Colleague','Сотрудник','Қызметкер'],['Department','Подразделение','Бөлім'],
 ['Current grade','Текущий грейд','Ағымдағы грейд'],['Skill readiness','Готовность по навыкам','Дағдылар бойынша дайындық'],['Development','Развитие','Даму'],['Open profile','Открыть профиль','Профильді ашу'],
 ['Support signals reflect activity history, not employee performance or attrition predictions.','Сигналы поддержки основаны на истории участия, а не на оценке эффективности или прогнозе увольнения.','Қолдау сигналдары қатысу тарихына негізделген, тиімділік бағасы немесе жұмыстан кету болжамы емес.'],
 ['Unassigned','Не указано','Көрсетілмеген'],['Recent completed activity','Есть недавнее завершение','Жақында аяқталған іс-шара бар'],['Offer support','Предложить поддержку','Қолдау ұсыну'],['Active','Активен','Белсенді'],
 ['No matching colleagues.','Сотрудники не найдены.','Қызметкерлер табылмады.'],
 ['BRING THE BIGGER PICTURE','СОБЕРИТЕ ПОЛНУЮ КАРТИНУ','ТОЛЫҚ КӨРІНІСТІ ҚҰРАСТЫРЫҢЫЗ'],['A home for your development data.','Все данные о развитии в одном месте.','Даму деректері бір жерде.'],
-['Import starter-kit or jury profiles and history. Validate everything before applying it.','Загрузите стартовый набор или профили и историю жюри. Проверьте данные перед применением.','Бастапқы жинақты немесе қазылар профильдері мен тарихын жүктеңіз. Қолданбас бұрын тексеріңіз.'],
+['Import starter-kit or jury profiles and history. Validate everything before applying it.','Загрузите стартовый набор или профили и историю жюри. Проверьте данные перед применением.','Бастапқы жинақты немесе қазылар ұсынған профильдер мен қатысу тарихын жүктеңіз. Қолданбас бұрын деректерді тексеріңіз.'],
 ['Upload a dataset','Загрузить данные','Деректерді жүктеу'],
 ['Select a combined JSON dataset, or select the starter-kit files together. Maximum request size: 8 MB.','Выберите общий JSON или файлы стартового набора вместе. Максимальный размер запроса — 8 МБ.','Біріктірілген JSON немесе бастапқы жинақ файлдарын бірге таңдаңыз. Сұрау шегі — 8 МБ.'],
 ['Choose your dataset files','Выберите файлы данных','Деректер файлдарын таңдаңыз'],['JSON or CSV · you can select multiple files','JSON или CSV · можно выбрать несколько файлов','JSON немесе CSV · бірнеше файл таңдауға болады'],
 ['Validate files','Проверить файлы','Файлдарды тексеру'],['Import validated data','Импортировать проверенные данные','Тексерілген деректерді импорттау'],
-['Jury-ready workflow','Готово к проверке жюри','Қазылар тексеруіне дайын'],['Connect the context.','Объедините контекст.','Мәнмәтінді біріктіріңіз.'],
+['Jury-ready workflow','Готово к проверке жюри','Қазылардың тексеруіне дайын'],['Connect the context.','Объедините контекст.','Деректерді өзара байланыстырыңыз.'],
 ['Role, grade, tenure and current skill levels.','Роль, грейд, стаж и текущие уровни навыков.','Рөл, грейд, еңбек өтілі және дағды деңгейлері.'],
 ['Audience, activity type, skill gains and caps.','Аудитория, тип активности, прирост и пределы навыков.','Аудитория, іс-шара түрі, дағды өсімі мен шектері.'],
 ['Skill definitions and grade requirements.','Определения навыков и требования грейдов.','Дағды анықтамалары және грейд талаптары.'],
@@ -124,12 +158,12 @@ const rows = [
 ['Recommendations use local rules or a locally configured Ollama model.','Рекомендации используют локальные правила или локальную модель Ollama.','Ұсыныстар жергілікті ережелерді немесе Ollama моделін пайдаланады.'],
 ['Select files totaling at most 7 MB (8 MB request limit).','Выберите файлы общим размером до 7 МБ (лимит запроса — 8 МБ).','Жалпы көлемі 7 МБ-қа дейінгі файлдарды таңдаңыз (сұрау шегі — 8 МБ).'],
 ['Dataset imported successfully.','Данные успешно импортированы.','Деректер сәтті импортталды.'],
-['Open Team overview to inspect imported profiles.','Откройте обзор команды для просмотра загруженных профилей.','Жүктелген профильдерді көру үшін топ шолуын ашыңыз.'],
+['Open Team overview to inspect imported profiles.','Откройте обзор команды для просмотра загруженных профилей.','Жүктелген профильдерді көру үшін «Топқа шолу» бөлімін ашыңыз.'],
 ['Request failed.','Не удалось выполнить запрос.','Сұрау орындалмады.'],['Failed to fetch','Не удалось связаться с сервером.','Сервермен байланысу мүмкін болмады.'],
 ['Please sign in to continue.','Войдите, чтобы продолжить.','Жалғастыру үшін кіріңіз.'],['Incorrect username or password.','Неверный логин или пароль.','Логин немесе құпиясөз қате.'],
-['Too many attempts. Try again in a minute.','Слишком много попыток. Повторите через минуту.','Тым көп әрекет. Бір минуттан кейін қайталаңыз.'],
+['Too many attempts. Try again in a minute.','Слишком много попыток. Повторите через минуту.','Кіру әрекеттері тым көп. Бір минуттан кейін қайталаңыз.'],
 ['You can only access your own development profile.','Доступен только ваш профиль развития.','Тек өз даму профиліңізге қол жеткізе аласыз.'],
-['Employee profile not found.','Профиль сотрудника не найден.','Қызметкер профилі табылмады.'],['HR access is required.','Требуется доступ HR.','HR қолжетімділігі қажет.'],
+['Employee profile not found.','Профиль сотрудника не найден.','Қызметкер профилі табылмады.'],['HR access is required.','Требуется доступ HR.','HR маманының рұқсаты қажет.'],
 ['Profile data changed during recommendation. Please refresh.','Данные изменились во время подбора. Обновите страницу.','Ұсыныс дайындау кезінде деректер өзгерді. Бетті жаңартыңыз.'],
 ['Data changed since validation. Validate your files again.','После проверки данные изменились. Проверьте файлы снова.','Тексеруден кейін деректер өзгерді. Файлдарды қайта тексеріңіз.'],
 ['Activity already completed.','Активность уже завершена.','Іс-шара бұрын аяқталған.'],['This activity has already been completed.','Эта активность уже завершена.','Бұл іс-шара бұрын аяқталған.'],
@@ -143,8 +177,8 @@ const rows = [
 ['This activity is in person; you usually work remotely. Check whether attendance is practical.','Активность очная, а вы обычно работаете удалённо. Проверьте возможность участия.','Іс-шара офлайн өтеді, ал сіз әдетте қашықтан жұмыс істейсіз. Қатысу мүмкіндігін тексеріңіз.'],
 ['Your last two completed activities were finished on time.','Две последние завершённые активности выполнены вовремя.','Соңғы екі аяқталған іс-шара уақытында орындалды.'],
 ['You have skipped similar activities before. Choose this only if the format works for you.','Ранее вы пропускали похожие активности. Выбирайте эту, если формат вам подходит.','Бұрын ұқсас іс-шараларға қатыспағансыз. Формат қолайлы болса ғана таңдаңыз.'],
-['Repeated missed or declined activities in 90 days','Повторные неявки или отказы за 90 дней','90 күнде қайталанған келмеу немесе бас тарту'],
-['No completed activity in 90 days','Нет завершений за 90 дней','90 күнде аяқталған іс-шара жоқ'],
+['Repeated missed or declined activities in 90 days','Повторные неявки или отказы за 90 дней','Соңғы 90 күнде бірнеше іс-шараға келмеген немесе қатысудан бас тартқан'],
+['No completed activity in 90 days','Нет завершений за 90 дней','Соңғы 90 күнде аяқталған іс-шара жоқ'],
 ['Transparent multi-factor scoring. Configure OPENAI_API_KEY or OLLAMA_MODEL for AI selection.','Прозрачная многофакторная оценка. Для ИИ настройте OPENAI_API_KEY или OLLAMA_MODEL.','Түсінікті көп факторлы бағалау. ЖИ үшін OPENAI_API_KEY немесе OLLAMA_MODEL орнатыңыз.'],
 ['workshop','практикум','практикум'],['course','курс','курс'],['mentoring','наставничество','тәлімгерлік'],['lab','лаборатория','зертхана'],['challenge','испытание','сынақ'],
 ['certification','сертификация','сертификаттау'],['meetup','встреча','кездесу'],['compliance','обязательное обучение','міндетті оқу'],['onboarding','адаптация','бейімделу'],
@@ -153,6 +187,35 @@ const rows = [
 ['Backend Engineer','Бэкенд-разработчик','Бэкенд әзірлеуші'],['Frontend Engineer','Фронтенд-разработчик','Фронтенд әзірлеуші'],['Data Analyst','Аналитик данных','Деректер талдаушысы'],['QA Engineer','Инженер по тестированию','Тестілеу инженері'],['Product Manager','Менеджер продукта','Өнім менеджері'],['HR Business Partner','HR-бизнес-партнёр','HR бизнес-серіктес'],['Sales Manager','Менеджер по продажам','Сату менеджері'],['Customer Support Specialist','Специалист поддержки','Қолдау маманы'],
 ];
 rows.forEach(row => add(...row));
+// Validation details are prefixed with a record ID by the server.
+const validationDetails = [
+['duplicate IDs.','повторяются ID.','ID мәндері қайталанады.'],
+['duplicate IDs in upload.','повторяются ID в загрузке.','жүктелген деректерде ID мәндері қайталанады.'],
+['invalid ID.','неверный ID.','ID мәні қате.'],
+['name and grade requirements are required.','нужны название и требования грейдов.','атауы мен грейд талаптары көрсетілуі керек.'],
+['grade requirement must be 0–5.','требование грейда должно быть от 0 до 5.','грейд талабы 0–5 аралығында болуы керек.'],
+['invalid role requirements.','неверные требования роли.','рөл талаптары қате.'],
+['invalid grade requirement.','неверное требование грейда.','грейд талабы қате.'],
+['valid role, grade and tenure_months required.','нужны корректные роль, грейд и tenure_months.','рөл, грейд және tenure_months дұрыс көрсетілуі керек.'],
+['name and department must be nonempty text when supplied.','имя и подразделение не должны быть пустыми.','аты-жөні мен бөлім атауы берілсе, бос мәтін болмауы керек.'],
+['skills must be an object.','skills должен быть объектом.','skills объект түрінде болуы керек.'],
+['invalid last_review_date.','неверная дата last_review_date.','last_review_date күні қате.'],
+['invalid assessed skill.','неверная оценка навыка.','дағдының бағасы қате.'],
+['invalid career goal.','неверная карьерная цель.','мансаптық мақсат қате.'],
+['unknown role/grade.','неизвестная роль или грейд.','белгісіз рөл немесе грейд.'],
+['unknown career target.','неизвестная карьерная цель.','белгісіз мансаптық мақсат.'],
+['title, type, audience array and positive duration_hours required.','нужны название, тип, массив аудитории и положительное duration_hours.','атауы, түрі, қатысушылар массиві және нөлден үлкен duration_hours мәні қажет.'],
+['invalid grades.','неверные грейды.','грейдтер қате.'],
+['voluntary must be boolean.','voluntary должен быть логическим значением.','voluntary логикалық мән болуы керек.'],
+['description must be text of up to 5,000 characters.','описание должно быть текстом до 5000 символов.','сипаттама 5000 таңбадан аспайтын мәтін болуы керек.'],
+['unique skill gains required (empty allowed for mandatory events).','нужны уникальные приросты навыков (можно оставить пустыми для обязательных активностей).','дағды өсімдері қайталанбауы керек (міндетті іс-шаралар үшін бос болуы мүмкін).'],
+['invalid skill, gain or max_level.','неверный навык, gain или max_level.','дағды, gain немесе max_level мәні қате.'],
+['prerequisites must be an object.','prerequisites должен быть объектом.','prerequisites объект түрінде болуы керек.'],
+['invalid prerequisite.','неверное предварительное требование.','алдын ала қойылатын талап қате.'],
+['invalid format.','неверный формат.','формат қате.'],
+['invalid session date.','неверная дата занятия.','сабақ күні қате.'],
+];
+validationDetails.forEach(row => add(...row));
 catalog.forEach(row => add(...row));
 for (const type of ['workshop','course','mentoring','lab','challenge','certification','meetup','compliance','onboarding']) {
   const entry = messages[type]; add(type[0].toUpperCase()+type.slice(1), entry.ru[0].toUpperCase()+entry.ru.slice(1), entry.kk[0].toUpperCase()+entry.kk.slice(1));
@@ -170,6 +233,18 @@ const choose = (lang, ru, kk) => lang === 'ru' ? ru : kk;
 function dynamic(text, lang) {
   const tr = value => translateText(value, lang);
   let m;
+  if ((m = text.match(/^([A-Za-z0-9_-]+): (.+)$/)) && messages[m[2]]) return `${m[1]}: ${tr(m[2])}`;
+  if ((m = text.match(/^([A-Za-z0-9_-]+): invalid or missing (.+)\.$/))) return choose(lang, `${m[1]}: отсутствует или некорректно ${m[2]}.`, `${m[1]}: ${m[2]} мәні жоқ немесе қате.`);
+  if ((m = text.match(/^([A-Za-z0-9_-]+): unknown skill or level outside 0–5: (.+)\.$/))) return choose(lang, `${m[1]}: неизвестный навык или уровень вне 0–5: ${m[2]}.`, `${m[1]}: белгісіз дағды немесе 0–5 аралығынан тыс деңгей: ${m[2]}.`);
+  if ((m = text.match(/^(.+) · Critical$/))) return `${tr(m[1])} ${tr('· Critical')}`;
+  if ((m = text.match(/^Unsupported filename: (.+)\.$/))) return choose(lang, `Неподдерживаемое имя файла: ${m[1]}.`, `Бұл файл атауына қолдау көрсетілмейді: ${m[1]}.`);
+  if ((m = text.match(/^Duplicate (.+) file\.$/))) return choose(lang, `Повторяется файл ${m[1]}.`, `${m[1]} файлы қайталанады.`);
+  if ((m = text.match(/^Role profile refers to unknown skill (.+)\.$/))) return choose(lang, `В профиле роли неизвестный навык: ${m[1]}.`, `Рөл профилінде белгісіз дағды көрсетілген: ${m[1]}.`);
+  if ((m = text.match(/^CSV row (\d+) has (\d+) fields; expected (\d+)\.$/))) return choose(lang, `Строка CSV ${m[1]}: ${m[2]} полей, требуется ${m[3]}.`, `CSV файлының ${m[1]}-жолында ${m[2]} өріс бар; ${m[3]} өріс болуы керек.`);
+  if ((m = text.match(/^(.+) must be an array or a (.+) wrapper\.$/))) return choose(lang, `${m[1]}: нужен массив или объект с полем ${m[2]}.`, `${m[1]}: массив немесе ${m[2]} өрісі бар объект болуы керек.`);
+  if ((m = text.match(/^(.+) must be a nonempty array \(up to 10,000 rows\)\.$/))) return choose(lang, `${m[1]}: нужен непустой массив до 10 000 строк.`, `${m[1]}: 10 000 жолдан аспайтын, бос емес массив болуы керек.`);
+  if ((m = text.match(/^(.+) must be an (array|object)( of up to 100,000 rows)?\.$/))) return choose(lang, `${m[1]}: требуется ${m[2] === 'array' ? 'массив' : 'объект'}${m[3] ? ' до 100 000 строк' : ''}.`, `${m[1]}: ${m[3] ? '100 000 жолдан аспайтын ' : ''}${m[2] === 'array' ? 'массив' : 'объект'} болуы керек.`);
+  if ((m = text.match(/^Invalid history (.+)\.$/))) return choose(lang, `Некорректное поле истории: ${m[1]}.`, `Қатысу тарихындағы өріс қате: ${m[1]}.`);
   if ((m = text.match(/^A little closer, (.+)\.$/))) return choose(lang, `Ещё на шаг ближе, ${m[1]}.`, `Тағы бір қадам жақындадыңыз, ${m[1]}.`);
   if ((m = text.match(/^Employee · (.+)$/))) return `${tr('Employee')} · ${m[1]}`;
   if ((m = text.match(/^(.+) \+(\d+)$/)) && messages[m[1]]) return `${tr(m[1])} +${m[2]}`;
@@ -179,27 +254,27 @@ function dynamic(text, lang) {
   if ((m = text.match(/^(\d+) (skills|opportunities for you|recorded activities|colleagues)$/))) return m[1] + ' ' + choose(lang, {skills:'навыков','opportunities for you':'возможностей для вас','recorded activities':'записей об активностях',colleagues:'сотрудников'}[m[2]], {skills:'дағды','opportunities for you':'даму мүмкіндігі','recorded activities':'іс-шара жазбасы',colleagues:'қызметкер'}[m[2]]);
   if ((m = text.match(/^\/ (\d+) target$/))) return choose(lang, `/ ${m[1]} цель`, `/ ${m[1]} мақсат`);
   if ((m = text.match(/^Target level (\d+)$/))) return choose(lang, `Целевой уровень ${m[1]}`, `Мақсатты деңгей ${m[1]}`);
-  if ((m = text.match(/^From (.+) to (.+)\.$/))) return choose(lang, `От ${terms(m[1],lang)} к ${terms(m[2],lang)}.`, `${terms(m[1],lang)} деңгейінен ${terms(m[2],lang)} деңгейіне.`);
+  if ((m = text.match(/^From (.+) to (.+)\.$/))) return choose(lang, `От ${terms(m[1],lang)} к ${terms(m[2],lang)}.`, `Қазіргі деңгейіңіз: ${terms(m[1],lang)}. Мақсатыңыз: ${terms(m[2],lang)}.`);
   if ((m = text.match(/^(\d+) months of experience here$/))) return choose(lang, `Стаж в компании: ${m[1]} мес.`, `Компаниядағы еңбек өтілі: ${m[1]} ай`);
-  if ((m = text.match(/^(\d+)% of defined skill requirements met · (\d+) critical gaps$/))) return choose(lang, `Выполнено ${m[1]}% требований · критических разрывов: ${m[2]}`, `Талаптардың ${m[1]}%-ы орындалды · маңызды алшақтық: ${m[2]}`);
-  if ((m = text.match(/^Current levels and the requirements for (.+)\.$/))) return choose(lang, `Текущие уровни и требования для ${terms(m[1],lang)}.`, `Ағымдағы деңгейлер және ${terms(m[1],lang)} талаптары.`);
-  if ((m = text.match(/^Assessment: (.+)\. (\d+) completed activities after that date are reflected in current levels\. Snapshot: (.+)\.$/))) return choose(lang, `Оценка: ${localizeDates(m[1],lang)}. Учтено завершений после оценки: ${m[2]}. Срез: ${m[3]}.`, `Бағалау: ${localizeDates(m[1],lang)}. Бағалаудан кейін ескерілген аяқтаулар: ${m[2]}. Кесінді: ${m[3]}.`);
+  if ((m = text.match(/^(\d+)% of defined skill requirements met · (\d+) critical gaps$/))) return choose(lang, `Выполнено ${m[1]}% требований · критических разрывов: ${m[2]}`, `Дағды талаптарының орындалуы: ${m[1]}% · маңызды дағдылар бойынша алшақтық саны: ${m[2]}`);
+  if ((m = text.match(/^Current levels and the requirements for (.+)\.$/))) return choose(lang, `Текущие уровни и требования для ${terms(m[1],lang)}.`, `Ағымдағы дағды деңгейлері. Талаптар: ${terms(m[1],lang)}.`);
+  if ((m = text.match(/^Assessment: (.+)\. (\d+) completed activities after that date are reflected in current levels\. Snapshot: (.+)\.$/))) return choose(lang, `Оценка: ${localizeDates(m[1],lang)}. Учтено завершений после оценки: ${m[2]}. Срез: ${m[3]}.`, `Бағалау күні: ${localizeDates(m[1],lang)}. Сол күннен кейін аяқталған ${m[2]} іс-шара ағымдағы деңгейлерде ескерілген. Деректердің күні: ${tr(m[3])}.`);
   if ((m = text.match(/^(\d+) \/ (\d+) people$/))) return choose(lang, `${m[1]} / ${m[2]} сотрудников`, `${m[1]} / ${m[2]} қызметкер`);
   if ((m = text.match(/^(\d+)% below their target$/))) return choose(lang, `${m[1]}% ниже целевого уровня`, `${m[1]}% мақсатты деңгейге жетпеген`);
   if ((m = text.match(/^View (.+) profile$/))) return choose(lang, `Открыть профиль: ${m[1]}`, `Профильді ашу: ${m[1]}`);
-  if ((m = text.match(/^(.+) · ([\d.]+) HOURS · VOLUNTARY$/))) return `${tr(m[1])} · ${m[2]} ${choose(lang,'ЧАС. · ДОБРОВОЛЬНО','САҒ. · ЕРІКТІ')}`;
+  if ((m = text.match(/^(.+) · ([\d.]+) HOURS · VOLUNTARY$/))) return `${tr(m[1])} · ${m[2]} ${choose(lang,'ЧАС. · ДОБРОВОЛЬНО','САҒ. · ҚАТЫСУ ЕРІКТІ')}`;
   if ((m = text.match(/^([\d.]+)h$/))) return m[1] + choose(lang,' ч',' сағ');
   if ((m = text.match(/^Gain (\d+), activity cap (\d+), scale 0–5$/))) return choose(lang, `Прирост ${m[1]}, предел активности ${m[2]}, шкала 0–5`, `Өсім ${m[1]}, іс-шара шегі ${m[2]}, шкала 0–5`);
   if ((m = text.match(/^Multi-factor score: ([-\d.]+)\. Considers gap closure, gap size, participation history, format and effort\.$/))) return choose(lang, `Многофакторная оценка: ${m[1]}. Учитывает сокращение и размер разрыва, историю, формат и трудозатраты.`, `Көп факторлы баға: ${m[1]}. Алшақтық көлемі мен қысқаруы, тарих, формат және уақыт ескеріледі.`);
   if ((m = text.match(/^Step completed\. (\d+) skill\(s\) progressed\. Your path is updated\.$/))) return choose(lang, `Шаг завершён. Улучшено навыков: ${m[1]}. Ваш путь обновлён.`, `Қадам аяқталды. Жақсарған дағдылар: ${m[1]}. Даму жолы жаңарды.`);
   if ((m = text.match(/^Validation passed\. Result: (\d+) profiles, (\d+) events, (\d+) skills and (\d+) history records\. Ready to import\.$/))) return choose(lang, `Проверка пройдена: ${m[1]} профилей, ${m[2]} активностей, ${m[3]} навыков, ${m[4]} записей истории. Можно импортировать.`, `Тексеру сәтті: ${m[1]} профиль, ${m[2]} іс-шара, ${m[3]} дағды, ${m[4]} тарих жазбасы. Импорттауға дайын.`);
   if ((m = text.match(/^(.+): (\d+)\/(\d+) for (.+?)( \(critical requirement\))?; this activity takes you to (\d+)\/(\d+)\.$/))) return choose(lang, `${tr(m[1])}: ${m[2]}/${m[3]} для ${terms(m[4],lang)}${m[5] ? ' (критическое требование)' : ''}; после активности — ${m[6]}/${m[7]}.`, `${tr(m[1])}: ${terms(m[4],lang)} үшін ${m[2]}/${m[3]}${m[5] ? ' (маңызды талап)' : ''}; іс-шарадан кейін — ${m[6]}/${m[7]}.`);
-  if ((m = text.match(/^(\d+) completed and (\d+) skipped or declined activities developing the same skills\.$/))) return choose(lang, `По этим навыкам: завершено ${m[1]}, пропущено или отклонено ${m[2]} активностей.`, `Осы дағдылар бойынша: ${m[1]} іс-шара аяқталған, ${m[2]} қатыспау немесе бас тарту.`);
-  if ((m = text.match(/^(\d+)% completion across (\d+) previous (.+) activities\.$/))) return choose(lang, `Завершено ${m[1]}% из ${m[2]} предыдущих активностей формата «${tr(m[3])}».`, `«${tr(m[3])}» форматындағы алдыңғы ${m[2]} іс-шараның ${m[1]}%-ы аяқталған.`);
+  if ((m = text.match(/^(\d+) completed and (\d+) skipped or declined activities developing the same skills\.$/))) return choose(lang, `По этим навыкам: завершено ${m[1]}, пропущено или отклонено ${m[2]} активностей.`, `Осы дағдыларды дамытатын ${m[1]} іс-шара аяқталған; ${m[2]} іс-шараға қатыспағансыз немесе қатысудан бас тартқансыз.`);
+  if ((m = text.match(/^(\d+)% completion across (\d+) previous (.+) activities\.$/))) return choose(lang, `Завершено ${m[1]}% из ${m[2]} предыдущих активностей формата «${tr(m[3])}».`, `«${tr(m[3])}» форматындағы алдыңғы іс-шаралар саны: ${m[2]}. Аяқталған үлесі: ${m[1]}%.`);
   if ((m = text.match(/^Try a (.+) format in ([\d.]+) hours\.$/))) return choose(lang, `Попробуйте формат «${tr(m[1])}»: ${m[2]} ч.`, `«${tr(m[1])}» форматын байқап көріңіз: ${m[2]} сағ.`);
   if ((m = text.match(/^Selected by (.+)\. Verified evidence and skill calculations are shown separately\.$/))) return choose(lang, `Выбрано ${m[1] === 'OpenAI' ? 'OpenAI' : 'локальной моделью'}. Проверенные факты и расчёты навыков показаны отдельно.`, `${m[1] === 'OpenAI' ? 'OpenAI' : 'Жергілікті модель'} таңдады. Тексерілген деректер мен дағды есептері бөлек көрсетілген.`);
   if (/Showing multi-factor recommendations\.$/.test(text)) {
-    const reason = text.includes('authentication failed') ? choose(lang,'Ошибка авторизации ИИ: проверьте API-ключ сервера.','ЖИ авторизация қатесі: сервердің API кілтін тексеріңіз.') : text.includes('quota or rate limit') ? choose(lang,'Достигнут лимит запросов или квоты ИИ.','ЖИ сұрау немесе квота шегіне жетті.') : text.includes('not configured') ? choose(lang,'ИИ не настроен.','ЖИ бапталмаған.') : choose(lang,'ИИ недоступен или вернул некорректный ответ.','ЖИ қолжетімсіз немесе қате жауап берді.');
+    const reason = text.includes('authentication failed') ? choose(lang,'Ошибка авторизации ИИ: проверьте API-ключ сервера.','ЖИ қызметіне кіру қатесі: сервердегі API кілтін тексеріңіз.') : text.includes('quota or rate limit') ? choose(lang,'Достигнут лимит запросов или квоты ИИ.','ЖИ қызметінің сұрау саны немесе квота шегіне жеттіңіз.') : text.includes('not configured') ? choose(lang,'ИИ не настроен.','ЖИ бапталмаған.') : choose(lang,'ИИ недоступен или вернул некорректный ответ.','ЖИ қолжетімсіз немесе қате жауап берді.');
     return reason + choose(lang,' Показаны многофакторные рекомендации.',' Көп факторлы ұсыныстар көрсетілген.');
   }
   if (text.startsWith('Format: ')) return localizeDates(terms(text.replace('Format:',choose(lang,'Формат:','Формат:')).replace('Recurring activity',choose(lang,'Регулярная активность','Қайталанатын іс-шара')).replace('Next sessions:',choose(lang,'Ближайшие сессии:','Келесі сессиялар:')),lang),lang);
@@ -210,7 +285,7 @@ function dynamic(text, lang) {
 }
 function terms(text, lang) {
   // Only known role/grade/format tokens in composite UI labels; preserve IDs and names.
-  const keys = ['Backend Engineer','Frontend Engineer','Data Analyst','QA Engineer','Product Manager','HR Business Partner','Sales Manager','Customer Support Specialist','Junior','Middle','Senior','Lead','self paced','self_paced','online','offline'];
+  const keys = ['your current grade','Backend Engineer','Frontend Engineer','Data Analyst','QA Engineer','Product Manager','HR Business Partner','Sales Manager','Customer Support Specialist','Junior','Middle','Senior','Lead','self paced','self_paced','online','offline'];
   for (const key of keys) text = text.replace(new RegExp(`\\b${key}\\b`,'g'), messages[key][lang]);
   return text;
 }

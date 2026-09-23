@@ -39,6 +39,27 @@ test('dynamic labels and evidence preserve facts in both languages', () => {
   assert.match(translateText('OpenAI quota or rate limit reached. Showing multi-factor recommendations.','ru'),/квоты/);
 });
 
+test('Kazakh translates combined labels, highest-grade text and import errors', () => {
+  assert.equal(translateText('System Design · Critical', 'kk'), 'Жүйелерді жобалау · Маңызды дағды');
+  for (const source of [
+    'Current levels and the requirements for your current grade Backend Engineer.',
+    'Unsupported filename: example.json.', 'Duplicate employees file.',
+    'CSV row 4 has 2 fields; expected 5.',
+    'employees: invalid or missing employee_id.',
+    'E0028: unknown skill or level outside 0–5: SK_PYTHON.',
+    'E0028: invalid career goal.', 'EV001: invalid format.',
+    'employees must be an array or a employees wrapper.',
+    'employees must be a nonempty array (up to 10,000 rows).',
+    'history must be an array of up to 100,000 rows.',
+    'Invalid JSON file. Check its syntax and try again.',
+  ]) {
+    const translated = translateText(source, 'kk');
+    assert.notEqual(translated, source);
+    assert.doesNotMatch(translated, /your current grade|must be|invalid|unknown|expected|Critical/);
+    for (const id of source.match(/\b(?:E\d+|EV\d+|SK_[A-Z_]+|example\.json)\b/g) || []) assert.ok(translated.includes(id));
+  }
+});
+
 // Minimal DOM contract exercises reversible translation without a browser dependency.
 class Element {
   constructor(tag,children=[],attrs={}) { this.nodeType=1; this.tag=tag; this.childNodes=children; this.attrs=attrs; this.namespaceURI='http://www.w3.org/1999/xhtml'; }
