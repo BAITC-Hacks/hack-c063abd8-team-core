@@ -30,6 +30,10 @@ test('API enforces permissions, validates imports and persists completion', asyn
     assert.equal((await request('/api/profile?employee_id=E0001', employee)).status, 403);
     assert.equal((await request('/api/enroll', employee, { event_id: 'EV001' }, { Origin: 'https://evil.example' })).status, 403);
     assert.equal((await request('/api/recommendations', employee)).data.recommendations[0].event_id, 'EV001');
+    assert.equal((await request('/api/recommendations?lang=ru', employee)).data.language, 'ru');
+    assert.equal((await request('/api/recommendations?lang=kz', employee)).data.language, 'kk');
+    assert.equal((await request('/api/recommendations?lang=invalid', employee)).data.language, 'en');
+    for (const path of ['/i18n.js','/language.js','/catalog.js']) assert.equal((await fetch(base + path)).status,200);
     assert.equal((await request('/api/complete', employee, { event_id: 'EV001' })).status, 400);
     assert.equal((await request('/api/enroll', employee, { event_id: 'EV001' })).status, 200);
     const completed = await request('/api/complete', employee, { event_id: 'EV001' });

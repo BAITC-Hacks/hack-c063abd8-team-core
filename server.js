@@ -9,6 +9,7 @@ import { aiRecommendations } from './lib/ai.js';
 import { aiConfig } from './lib/ai.js';
 import { asOf, datasetFromFiles } from './lib/dataset.js';
 import { loadDatasetDirectory } from './lib/dataset-loader.js';
+import { normalizeLanguage } from './public/i18n.js';
 
 const root = dirname(fileURLToPath(import.meta.url));
 if (process.env.LOAD_ENV_FILE !== 'false' && existsSync(resolve(root, '.env'))) process.loadEnvFile(resolve(root, '.env'));
@@ -54,7 +55,7 @@ function profile(session, query) {
   if (!employee) fail(404, 'Employee profile not found.');
   return employee;
 }
-const assets = { '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/styles.css': ['styles.css', 'text/css'], '/favicon.svg': ['favicon.svg', 'image/svg+xml'] };
+const assets = { '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/i18n.js': ['i18n.js', 'text/javascript'], '/language.js': ['language.js', 'text/javascript'], '/catalog.js': ['catalog.js', 'text/javascript'], '/styles.css': ['styles.css', 'text/css'], '/favicon.svg': ['favicon.svg', 'image/svg+xml'] };
 export const server = http.createServer(async (req, res) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'no-referrer');
@@ -99,16 +100,17 @@ export const server = http.createServer(async (req, res) => {
     }
     if (route === '/api/recommendations' && req.method === 'GET') {
       const employee = profile(session, url.searchParams); const before = revision;
-      const key = `${before}:${employee.employee_id}`;
+      const language = normalizeLanguage(url.searchParams.get('lang'));
+      const key = `${before}:${employee.employee_id}:${language}`;
       let cached = recommendationCache.get(key);
       if (!cached || cached.expires < Date.now()) {
-        cached = { expires: Date.now() + 5 * 60000, promise: aiRecommendations(employee, recommend(state, employee)) };
+        cached = { expires: Date.now() + 5 * 60000, promise: aiRecommendations(employee, recommend(state, employee), fetch, language) };
         recommendationCache.set(key, cached);
       }
       const result = await cached.promise;
       if (result.mode === 'rules' && result.provider !== 'rules') recommendationCache.delete(key);
       if (before !== revision) fail(409, 'Profile data changed during recommendation. Please refresh.');
-      return json(res, 200, result);
+      return json(res, 200, { ...result, language });
     }
     if (route === '/api/events' && req.method === 'GET') {
       const employee = profile(session, url.searchParams);

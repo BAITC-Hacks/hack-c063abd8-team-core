@@ -4,6 +4,6 @@
   "private": true,
   "type": "module",
   "description": "Explainable employee development navigator for HackAlem AI",
-  "scripts": { "start": "node server.js", "import:dataset": "node scripts/import-dataset.js", "test": "node --test", "check": "node --check server.js && node --check public/app.js && node --check lib/dataset.js && node --check lib/ai.js" },
+  "scripts": { "start": "node server.js", "import:dataset": "node scripts/import-dataset.js", "test": "node --test", "check": "node --check server.js && node --check public/app.js && node --check public/i18n.js && node --check public/language.js && node --check public/catalog.js && node --check lib/dataset.js && node --check lib/ai.js" },
   "engines": { "node": ">=22" }
 }

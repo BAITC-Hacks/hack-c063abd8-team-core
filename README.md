@@ -91,7 +91,13 @@ new_level = max(current, min(5, activity.max_level, current + activity.gain))
 readiness = round(100 * sum(min(current, target)) / sum(target))
 ```
 
-Skills with no target do not increase the readiness denominator. Readiness is a development guide, not a promotion decision. Individual skill gaps and critical requirements remain visible. The interface is English; source language preferences are preserved, but RU/KK localization is not implemented.
+Skills with no target do not increase the readiness denominator. Readiness is a development guide, not a promotion decision. Individual skill gaps and critical requirements remain visible.
+
+## Interface language
+
+Use **EN / RU / KZ** on the sign-in page or in the workspace header to choose English, Russian or Kazakh. The choice is saved in this browser and applies to navigation, forms, dates, HR screens, supplied activity titles/descriptions, skill labels and recommendation evidence. Switching preserves form input and selected import files. AI explanations are requested in the selected language; cached recommendations are separated by language. The KZ button uses the standard Kazakh language code `kk` internally.
+
+Names, IDs, filenames, code and original dataset records are preserved. Unknown text from custom imports stays in its source language. Language selection does not modify an employee's dataset language preference. Technical validation details from unsupported/custom input may remain in English.
 
 Completion is **self-reported for the demo** and immediately updates skill levels, including for a selected future session; it is not proof of real attendance. A production deployment should verify completion through the learning system. The snapshot clock remains fixed for reproducible hackathon evaluation.
 
