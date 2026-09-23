@@ -1,5 +1,7 @@
 # Career Quest
 
+**Language:** **English (ENG)** | [Русский (RU)](README.ru.md) | [Қазақша (KZ)](README.kz.md)
+
 An employee development navigator for the HackAlem AI Halyk Bank track. Includes explainable recommendations, career trajectories, voluntary activities, skill updates, a development journal, HR analytics and jury-data imports.
 
 ## Run
